@@ -3,17 +3,7 @@
 [![CI](https://github.com/ansible-collections/splunk.enterprise/workflows/CI/badge.svg?event=push)](https://github.com/ansible-collections/splunk.enterprise/actions) [![Codecov](https://img.shields.io/codecov/c/github/ansible-collections/splunk.enterprise)](https://codecov.io/gh/ansible-collections/splunk.enterprise)
 
 <!-- Describe the collection and why a user would want to use it. What does the collection do? -->
-
-## Our mission
-
-<!-- Put your collection's mission statement in here. Example follows. -->
-
-At the splunk.enterprise, our mission is to produce and maintain simple, flexible,
-and powerful open-source software tailored to splunk enterprise related functionality.
-
-We welcome members from all skill levels to participate actively in our open, inclusive, and vibrant community.
-Whether you are an expert or just beginning your journey with Ansible and splunk,
-you are encouraged to contribute, share insights, and collaborate with fellow enthusiasts!
+The Ansible Enterprise collection includes variety of content to help automate lifecycle management of Splunk Enterprise related functionality.
 
 ## Code of Conduct
 
