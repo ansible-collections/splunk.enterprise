@@ -41,7 +41,8 @@ For more information about communication, see the [Ansible communication guide](
 
 ## Contributing to this collection
 
-<!--Describe how the community can contribute to your collection. At a minimum, fill up and include the CONTRIBUTING.md file containing how and where users can create issues to report problems or request features for this collection. List contribution requirements, including preferred workflows and necessary testing, so you can benefit from community PRs. If you are following general Ansible contributor guidelines, you can link to - [Ansible Community Guide](https://docs.ansible.com/projects/ansible/devel/community/index.html). List the current maintainers (contributors with write or higher access to the repository). The following can be included:-->
+We welcome community contributions to this collection. If you find problems, please open an issue or create a PR against the [Splunk Enterprise collection repository](https://github.com/ansible-collections/splunk.enterprise). See [Contributing to Ansible-maintained collections](https://docs.ansible.com/ansible/devel/community/contributing_maintained_collections.html#contributing-maintained-collections) for complete details.
+
 
 The content of this collection is made by people like you, a community of individuals collaborating on making the world better through developing automation software.
 
@@ -72,61 +73,48 @@ They also should be subscribed to Ansible's [The Bullhorn newsletter](https://do
 
 ## Governance
 
-<!--Describe how the collection is governed. Here can be the following text:-->
-
 The process of decision making in this collection is based on discussing and finding consensus among participants.
 
 Every voice is important. If you have something on your mind, create an issue or dedicated discussion and let's discuss it!
 
 ## Tested with Ansible
 
-<!-- List the versions of Ansible the collection has been tested with. Must match what is in galaxy.yml. -->
-
-## External requirements
-
-<!-- List any external resources the collection depends on, for example minimum versions of an OS, libraries, or utilities. Do not list other Ansible collections here. -->
-
-### Supported connections
-<!-- Optional. If your collection supports only specific connection types (such as HTTPAPI, netconf, or others), list them here. -->
-
-## Included content
-
-<!-- Galaxy now usually displays full module and plugin docs within the UI. If you don't use Galaxy for your collection, you may need to either describe your plugins etc here, or point to an external docsite to cover that information. -->
+This collection has been tested against the following Ansible versions: >=2.17.0.
 
 ## Using this collection
 
-<!--Include some quick examples that cover the most common use cases for your collection content. It can include the following examples of installation and upgrade (change NAMESPACE.COLLECTION_NAME correspondingly):-->
+TBD
 
 ### Installing the Collection from Ansible Galaxy
 
 Before using this collection, you need to install it with the Ansible Galaxy command-line tool:
 ```bash
-ansible-galaxy collection install NAMESPACE.COLLECTION_NAME
+ansible-galaxy collection install splunk.enterprise
 ```
 
 You can also include it in a `requirements.yml` file and install it with `ansible-galaxy collection install -r requirements.yml`, using the format:
 ```yaml
 ---
 collections:
-  - name: NAMESPACE.COLLECTION_NAME
+  - name: splunk.enterprise
 ```
 
 Note that if you install the collection from Ansible Galaxy, it will not be upgraded automatically when you upgrade the `ansible` package. To upgrade the collection to the latest available version, run the following command:
 ```bash
-ansible-galaxy collection install NAMESPACE.COLLECTION_NAME --upgrade
+ansible-galaxy collection install splunk.enterprise --upgrade
 ```
 
 You can also install a specific version of the collection, for example, if you need to downgrade when something is broken in the latest version (please report an issue in this repository). Use the following syntax to install version `0.1.0`:
 
 ```bash
-ansible-galaxy collection install NAMESPACE.COLLECTION_NAME:==0.1.0
+ansible-galaxy collection install splunk.enterprise:==0.1.0
 ```
 
 See [using Ansible collections](https://docs.ansible.com/projects/ansible/devel/user_guide/collections_using.html) for more details.
 
 ## Release notes
 
-See the [changelog](https://github.com/ansible-collections/REPONAMEHERE/tree/main/CHANGELOG.rst).
+See the [changelog](https://github.com/ansible-collections/splunk.enterprise/tree/main/CHANGELOG.rst).
 
 ## Roadmap
 
