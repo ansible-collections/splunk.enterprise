@@ -15,7 +15,7 @@ on: # yamllint disable-line rule:truthy
     - cron: "0 0 * * *"
 
 jobs:
-  sonar:
+  sonar: # dummy job to satisfy the CI pipeline
     name: SonarCloud
     uses: ansible/ansible-content-actions/.github/workflows/sonarcloud.yaml@main
     with:
