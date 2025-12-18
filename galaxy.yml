@@ -1,6 +1,6 @@
 ---
 namespace: splunk
-name: es
+name: enterprise
 authors:
   - Ansible Ecosystem Engineering team
   - Shahar Golshani <sgolshan@redhat.com>

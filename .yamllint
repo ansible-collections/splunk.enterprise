@@ -6,6 +6,16 @@ ignore: |
   changelogs/*
 
 rules:
+  comments:
+    # https://github.com/prettier/prettier/issues/6780
+    min-spaces-from-content: 1
+    # https://github.com/adrienverge/yamllint/issues/384
+  comments-indentation: false
+  document-start: disable
+  octal-values:
+    # https://docs.ansible.com/projects/lint/rules/yaml/
+    forbid-implicit-octal: true
+    forbid-explicit-octal: true
   braces:
     max-spaces-inside: 1
     level: error
