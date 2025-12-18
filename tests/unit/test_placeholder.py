@@ -10,5 +10,3 @@ Replace this with real unit tests as collection content is added.
 def test_unit_placeholder() -> None:
     """Ensure pytest collects at least one unit test."""
     pass
-
-
