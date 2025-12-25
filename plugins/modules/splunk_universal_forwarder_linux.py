@@ -75,6 +75,16 @@ options:
     choices: ['64-bit', 'ARM']
     default: 64-bit
 
+  forward_servers:
+    description:
+      - List of Splunk Enterprise servers to forward data to.
+      - Each entry must be in V(<host>:<port>) format (e.g., V(splunk-indexer.example.com:9997)).
+      - The default Splunk receiving port is typically V(9997).
+      - When specified, configures the forwarder to send data to these servers, Sets the forward-servers exactly to this list.
+      - When list is empty, The current configured forward-servers will be removed, and the configuration will be empty.
+    type: list
+    elements: str
+
 notes:
   - This module only works on RHEL 8, 9, and 10 systems.
   - The RPM package will be downloaded to V(/opt) from the official Splunk download site.
@@ -93,7 +103,7 @@ EXAMPLES = r"""
     username: admin
     password: "changeme123"
 
-- name: Install Splunk Universal Forwarder on ARM architecture
+- name: Install Splunk Universal Forwarder on ARM architecture, with no forward-servers configured
   splunk.enterprise.splunk_universal_forwarder_linux:
     state: present
     version: "10.0.1"
@@ -101,6 +111,18 @@ EXAMPLES = r"""
     cpu: ARM
     username: admin
     password: "changeme123"
+    forward_servers: []
+
+- name: Install Splunk Universal Forwarder with forward-servers configuration
+  splunk.enterprise.splunk_universal_forwarder_linux:
+    state: present
+    version: "10.0.1"
+    version_hash: "c486717c322b"
+    username: admin
+    password: "changeme123"
+    forward_servers:
+      - "splunk-indexer1.example.com:9997"
+      - "192.168.1.100:9997"
 
 - name: Remove Splunk Universal Forwarder
   splunk.enterprise.splunk_universal_forwarder_linux:
@@ -282,6 +304,56 @@ def create_user_seed_conf(module: AnsibleModule, splunk_home: str, username: str
         module.fail_json(msg=f"Failed to create user-seed.conf: {str(e)}")
 
 
+def get_existing_forward_servers(module: AnsibleModule, splunk_home: str, username: str, password: str) -> list:
+    """Get list of existing forward-servers from the Splunk Universal Forwarder."""
+    if module.check_mode:
+        return []
+    splunk_bin = os.path.join(splunk_home, 'bin', 'splunk')
+    env = os.environ.copy()
+    env['SPLUNK_USERNAME'] = username
+    env['SPLUNK_PASSWORD'] = password
+    rc, out, err = module.run_command(
+        [splunk_bin, 'list', 'forward-server'],
+        environ_update=env
+    )
+    if rc != 0:
+        module.warn(f"Failed to list forward-servers: {err}")
+        return []
+    existing_forward_servers = []
+    current_key = None
+    for line in out.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        if line.endswith(':'):
+            current_key = line.replace(':', '')
+        elif current_key:
+            if line.lower() != "none":
+                existing_forward_servers.append(line)
+    return existing_forward_servers
+
+
+def manage_forward_servers(module: AnsibleModule, splunk_home: str, username: str, password: str, forward_servers: list, action: str) -> bool:
+    """add/remove forward-servers from the Splunk Universal Forwarder."""
+    if module.check_mode:
+        return len(forward_servers) > 0
+    changed = False
+    splunk_bin = os.path.join(splunk_home, 'bin', 'splunk')
+    env = os.environ.copy()
+    env['SPLUNK_USERNAME'] = username
+    env['SPLUNK_PASSWORD'] = password
+    for server in forward_servers:
+        rc, out, err = module.run_command(
+            [splunk_bin, action, 'forward-server', server],
+            environ_update=env
+        )
+        if rc != 0:
+            module.warn(f"Failed to {action} forward-server {server}: {err}")
+        else:
+            changed = True
+    return changed
+
+
 def start_splunk(module: AnsibleModule, splunk_home: str) -> tuple[int, str, str]:
     """Start Splunk for the first time with license acceptance."""
     if module.check_mode:
@@ -413,6 +485,7 @@ def main() -> None:
             cpu=dict(type='str', default='64-bit', choices=['64-bit', 'ARM']),
             username=dict(type='str'),
             password=dict(type='str', no_log=True),
+            forward_servers=dict(type='list', elements='str'),
         ),
         required_if=[
             ('state', 'present', ['version', 'version_hash', 'username', 'password']),
@@ -426,6 +499,7 @@ def main() -> None:
     cpu = module.params['cpu']
     username = module.params['username']
     password = module.params['password']
+    forward_servers = module.params['forward_servers']
     download_dir = '/opt'
     splunk_home = '/opt/splunkforwarder'
 
@@ -458,8 +532,31 @@ def main() -> None:
 
     # Check if already installed with correct version
     installed_version = get_installed_version(module)
+
+    # if forward_servers is None:
+    #     module.exit_json(msg=f"forward_servers is None in the module params: {forward_servers}")
+    # elif len(forward_servers) == 0:
+    #     module.exit_json(msg="forward_servers is an empty list")
+    # else:
+    #     module.exit_json(msg=f"forward_servers is a list: {forward_servers}")
+
+    if installed_version and forward_servers is not None:
+        existing_forward_servers = get_existing_forward_servers(module, splunk_home, username, password)
+        existing_forward_servers_set = set(existing_forward_servers)
+        forward_servers_set = set(forward_servers)
+        to_add = list(forward_servers_set - existing_forward_servers_set)
+        to_remove = list(existing_forward_servers_set - forward_servers_set)
+
     if installed_version == version:
         result['msg'] = f"Splunk Universal Forwarder {version} is already installed"
+        if to_add:
+            if manage_forward_servers(module, splunk_home, username, password, to_add, action='add'):
+                result['changed'] = True
+            result['msg'] = f"Splunk Universal Forwarder {version} is already installed - forward-servers set: {forward_servers}"
+        if to_remove:
+            if manage_forward_servers(module, splunk_home, username, password, to_remove, action='remove'):
+                result['changed'] = True
+            result['msg'] = f"Splunk Universal Forwarder {version} is already installed - forward-servers set: {forward_servers}"
         module.exit_json(**result)
 
     rpm_filename = f"splunkforwarder-{version}-{version_hash}.{cpu_arch}.rpm"
@@ -483,11 +580,13 @@ def main() -> None:
         module.log("Verifying RPM checksum")
         verify_checksum(module, rpm_path, checksum_path)
 
+    # Uninstall The Previous Splunk Universal Forwarder
     if installed_version:
         module.log(f"Uninstalling old Splunk Universal Forwarder {installed_version}")
         uninstall_result = uninstall_splunk(module, splunk_home)
         module.log(f"Uninstall result: {uninstall_result['msg']}")
 
+    # Install Splunk Universal Forwarder RPM
     module.log(f"Installing Splunk Universal Forwarder {version}")
     rc, out, err = install_rpm(module, rpm_path)
     if rc != 0:
@@ -513,6 +612,15 @@ def main() -> None:
     rc, out, err = enable_systemd_service(module, splunk_home)
     if rc != 0:
         module.warn(f"Failed to enable/start SplunkForwarder systemd service: {err}")
+
+    # Add forward-servers
+    if forward_servers and not installed_version:
+        manage_forward_servers(module, splunk_home, username, password, forward_servers, action='add')
+    elif forward_servers and installed_version:
+        if to_add:
+            manage_forward_servers(module, splunk_home, username, password, to_add, action='add')
+        if to_remove:
+            manage_forward_servers(module, splunk_home, username, password, to_remove, action='remove')
 
     result['changed'] = True
     result['msg'] = f"Splunk Universal Forwarder {version} installed and started successfully"
