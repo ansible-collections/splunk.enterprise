@@ -186,6 +186,8 @@ changed:
 import os
 import re
 import hashlib
+import shutil
+from pathlib import Path
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.urls import open_url
 
@@ -486,6 +488,24 @@ def uninstall_splunk(module: AnsibleModule, splunk_home: str) -> dict:
     result['msg'] = "Splunk Universal Forwarder removed successfully"
     return result
 
+def purge_splunk_home(module: AnsibleModule, splunk_home: str) -> None:
+    """Purge the Splunk Universal Forwarder home directory."""
+    if not module.check_mode:
+        # Safety check: ensure 'splunk' is in {splunk_home} to prevent deletion of system folders!
+        if "splunk" not in splunk_home.lower():
+            module.fail_json(
+                msg=(
+                    "To prevent accidental data loss, the deletion process is restricted "
+                    f"to directories containing the keyword 'splunk' in their path: {splunk_home}"
+                )
+            )
+        path = Path(splunk_home)
+        if path.exists() and path.is_dir():
+            shutil.rmtree(path)
+            module.log(f"Removed: {splunk_home}")
+        else:
+            module.log(f"Directory does not exist or is not a directory: {splunk_home}")
+
 
 def main() -> None:
     module = AnsibleModule(
@@ -533,6 +553,7 @@ def main() -> None:
     # Handle removal (state == 'absent')
     if state == 'absent':
         removal_result = uninstall_splunk(module, splunk_home)
+        purge_splunk_home(module, splunk_home)
         result.update(removal_result)
         module.exit_json(**result)
 
@@ -545,6 +566,7 @@ def main() -> None:
 
     if installed_version:
         if check_if_downgrade(installed_version, version):
+            result["failed"] = True
             result['msg'] = (
                 f"Installed Version {installed_version} is newer than {version} "
                 "Only universal forwarder upgrades are allowed. "
