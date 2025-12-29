@@ -80,7 +80,7 @@ version:
   returned: when state is present
   sample: "10.0.1"
 
-version_hash:
+release_id:
   description: Build hash corresponding to the installed version.
   type: str
   returned: when state is present
@@ -93,16 +93,16 @@ cpu:
   sample: "x86_64"
 
 forward_servers:
-  description: List of configured forward servers.
+  description: List of configured forward servers. Empty list if none configured.
   type: list
   elements: str
   returned: when state is present
   sample: ["splunk-indexer1.example.com:9997", "192.168.1.100:9997"]
 
 deployment_server:
-  description: Configured deployment server URI.
+  description: Configured deployment server URI. Empty string if not configured.
   type: str
-  returned: when state is present and deployment server is configured
+  returned: when state is present
   sample: "deployment-server.example.com:8089"
 
 splunk_home:
@@ -166,7 +166,7 @@ def get_installed_version(module: AnsibleModule) -> str | None:
         return None
 
 
-def get_installed_version_hash(module: AnsibleModule) -> str | None:
+def get_installed_release_id(module: AnsibleModule) -> str | None:
     """Get the currently installed Splunk version hash (build) from RPM RELEASE field."""
     if not is_splunk_installed(module):
         return None
@@ -269,9 +269,9 @@ def main() -> None:
     if version:
         result['version'] = version
 
-    version_hash = get_installed_version_hash(module)
-    if version_hash:
-        result['version_hash'] = version_hash
+    release_id = get_installed_release_id(module)
+    if release_id:
+        result['release_id'] = release_id
 
     cpu = get_installed_cpu_arch(module)
     if cpu:
@@ -281,8 +281,7 @@ def main() -> None:
     result['forward_servers'] = forward_servers
 
     deployment_server = get_deployment_server(module, splunk_home)
-    if deployment_server:
-        result['deployment_server'] = deployment_server
+    result['deployment_server'] = deployment_server if deployment_server else ""
 
     module.exit_json(**result)
 

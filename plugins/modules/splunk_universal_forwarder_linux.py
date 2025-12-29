@@ -45,7 +45,7 @@ options:
       - Required when O(state=present).
     type: str
 
-  version_hash:
+  release_id:
     description:
       - Build hash corresponding to the Splunk Universal Forwarder version (e.g., V(c486717c322b)).
       - The build hash can be found on the Splunk download page for each version.
@@ -99,7 +99,7 @@ notes:
   - The RPM package will be downloaded to V(/opt) from the official Splunk download site.
   - Splunk Universal Forwarder will be installed to V(/opt/splunkforwarder).
   - Requires root privileges to install/remove packages and start services.
-  - The RPM filename is constructed as V(splunkforwarder-{version}-{version_hash}.{cpu_arch}.rpm).
+  - The RPM filename is constructed as V(splunkforwarder-{version}-{release_id}.{cpu_arch}.rpm).
   - When upgrading from a previous version, $SPLUNK_HOME/etc & $SPLUNK_HOME/var directories will be preserved to save previous data.
 """
 
@@ -108,7 +108,7 @@ EXAMPLES = r"""
   splunk.enterprise.splunk_universal_forwarder_linux:
     state: present
     version: "10.0.1"
-    version_hash: "c486717c322b"
+    release_id: "c486717c322b"
     username: admin
     password: "changeme123"
 
@@ -116,7 +116,7 @@ EXAMPLES = r"""
   splunk.enterprise.splunk_universal_forwarder_linux:
     state: present
     version: "10.0.1"
-    version_hash: "c486717c322b"
+    release_id: "c486717c322b"
     cpu: ARM
     username: admin
     password: "changeme123"
@@ -126,7 +126,7 @@ EXAMPLES = r"""
   splunk.enterprise.splunk_universal_forwarder_linux:
     state: present
     version: "10.0.1"
-    version_hash: "c486717c322b"
+    release_id: "c486717c322b"
     username: admin
     password: "changeme123"
     forward_servers:
@@ -137,7 +137,7 @@ EXAMPLES = r"""
   splunk.enterprise.splunk_universal_forwarder_linux:
     state: present
     version: "10.0.1"
-    version_hash: "c486717c322b"
+    release_id: "c486717c322b"
     username: admin
     password: "changeme123"
     deployment_server: "deployment-server.example.com:8089"
@@ -146,7 +146,7 @@ EXAMPLES = r"""
   splunk.enterprise.splunk_universal_forwarder_linux:
     state: present
     version: "10.0.1"
-    version_hash: "c486717c322b"
+    release_id: "c486717c322b"
     username: admin
     password: "changeme123"
     deployment_server: ""
@@ -159,7 +159,7 @@ EXAMPLES = r"""
   splunk.enterprise.splunk_universal_forwarder_linux:
     state: present
     version: "10.0.1"
-    version_hash: "c486717c322b"
+    release_id: "c486717c322b"
     username: admin
     password: "changeme123"
   check_mode: true
@@ -178,7 +178,7 @@ version:
   returned: when state is present
   sample: "10.0.1"
 
-version_hash:
+release_id:
   description: Build hash corresponding to the version.
   type: str
   returned: when state is present
@@ -600,7 +600,7 @@ def main() -> None:
         argument_spec=dict(
             state=dict(type='str', default='present', choices=['present', 'absent']),
             version=dict(type='str'),
-            version_hash=dict(type='str'),
+            release_id=dict(type='str'),
             cpu=dict(type='str', default='64-bit', choices=['64-bit', 'ARM']),
             username=dict(type='str'),
             password=dict(type='str', no_log=True),
@@ -608,14 +608,14 @@ def main() -> None:
             deployment_server=dict(type='str'),
         ),
         required_if=[
-            ('state', 'present', ['version', 'version_hash', 'username', 'password']),
+            ('state', 'present', ['version', 'release_id', 'username', 'password']),
         ],
         supports_check_mode=True,
     )
 
     state = module.params['state']
     version = module.params['version']
-    version_hash = module.params['version_hash']
+    release_id = module.params['release_id']
     cpu = module.params['cpu']
     username = module.params['username']
     password = module.params['password']
@@ -649,9 +649,12 @@ def main() -> None:
 
     # Handle installation (state == 'present')
     result['version'] = version
-    result['version_hash'] = version_hash
+    result['release_id'] = release_id
     result['cpu_arch'] = cpu_arch
 
+    to_add = []
+    to_remove = []
+    
     installed_version = get_installed_version(module)
 
     if installed_version:
@@ -696,7 +699,7 @@ def main() -> None:
                     result['msg'] = f"Splunk Universal Forwarder {version} is already installed - deployment server set to: {deployment_server}"
         module.exit_json(**result)
 
-    rpm_filename = f"splunkforwarder-{version}-{version_hash}.{cpu_arch}.rpm"
+    rpm_filename = f"splunkforwarder-{version}-{release_id}.{cpu_arch}.rpm"
     rpm_url = f"https://download.splunk.com/products/universalforwarder/releases/{version}/linux/{rpm_filename}"
     checksum_url = f"{rpm_url}.sha512"
 
