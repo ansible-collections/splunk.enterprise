@@ -85,6 +85,15 @@ options:
     type: list
     elements: str
 
+  deployment_server:
+    description:
+      - The Splunk Deployment Server to register with.
+      - Must be in V(<host>:<port>) format (e.g., V(deployment-server.example.com:8089)).
+      - The default Splunk deployment server port is V(8089).
+      - When specified, configures the forwarder to poll this deployment server for apps and configurations.
+      - When set to an empty string, removes the deployment server configuration and restarts the forwarder service.
+    type: str
+
 notes:
   - This module only works on RHEL 8, 9, and 10 systems.
   - The RPM package will be downloaded to V(/opt) from the official Splunk download site.
@@ -123,6 +132,24 @@ EXAMPLES = r"""
     forward_servers:
       - "splunk-indexer1.example.com:9997"
       - "192.168.1.100:9997"
+
+- name: Install Splunk Universal Forwarder with deployment server
+  splunk.enterprise.splunk_universal_forwarder_linux:
+    state: present
+    version: "10.0.1"
+    version_hash: "c486717c322b"
+    username: admin
+    password: "changeme123"
+    deployment_server: "deployment-server.example.com:8089"
+
+- name: Remove deployment server configuration
+  splunk.enterprise.splunk_universal_forwarder_linux:
+    state: present
+    version: "10.0.1"
+    version_hash: "c486717c322b"
+    username: admin
+    password: "changeme123"
+    deployment_server: ""
 
 - name: Remove Splunk Universal Forwarder
   splunk.enterprise.splunk_universal_forwarder_linux:
@@ -367,6 +394,67 @@ def manage_forward_servers(module: AnsibleModule, splunk_home: str, username: st
     return changed
 
 
+def get_deployment_server(module: AnsibleModule, splunk_home: str) -> str | None:
+    """Get the currently configured deployment server from deploymentclient.conf."""
+    deployment_conf = os.path.join(splunk_home, 'etc', 'system', 'local', 'deploymentclient.conf')
+    if not os.path.exists(deployment_conf):
+        return None
+    try:
+        with open(deployment_conf, 'r') as f:
+            content = f.read()
+        # Parse targetUri from [target-broker:deploymentServer] section
+        match = re.search(r'targetUri\s*=\s*(\S+)', content)
+        if match:
+            return match.group(1)
+        return None
+    except Exception as e:
+        module.warn(f"Failed to read deploymentclient.conf: {str(e)}")
+        return None
+
+
+def set_deployment_server(module: AnsibleModule, splunk_home: str, username: str, password: str, deployment_server: str) -> bool:
+    """Set the deployment server using the Splunk CLI command."""
+    if module.check_mode:
+        return True
+    splunk_bin = os.path.join(splunk_home, 'bin', 'splunk')
+    env = os.environ.copy()
+    env['SPLUNK_USERNAME'] = username
+    env['SPLUNK_PASSWORD'] = password
+    rc, out, err = module.run_command(
+        [splunk_bin, 'set', 'deploy-poll', deployment_server],
+        environ_update=env
+    )
+    if rc != 0:
+        module.warn(f"Failed to set deploy-poll to {deployment_server}: {err}")
+        return False
+    return True
+
+
+def remove_deployment_server(module: AnsibleModule, splunk_home: str) -> bool:
+    """Remove the deployment server by deleting deploymentclient.conf and restarting Splunk."""
+    if module.check_mode:
+        return True
+    deployment_conf = os.path.join(splunk_home, 'etc', 'system', 'local', 'deploymentclient.conf')
+    if os.path.exists(deployment_conf):
+        try:
+            os.remove(deployment_conf)
+            module.log(f"Removed deployment client config: {deployment_conf}")
+        except Exception as e:
+            module.warn(f"Failed to remove deploymentclient.conf: {str(e)}")
+            return False
+        # Restart Splunk service to apply changes
+        splunk_bin = os.path.join(splunk_home, 'bin', 'splunk')
+        rc, out, err = module.run_command([splunk_bin, 'restart'], check_rc=False)
+        if rc != 0:
+            module.warn(f"Failed to restart Splunk after removing deployment server: {err}")
+            return False
+        if not check_splunk_service(module, splunk_home, 'start'):
+            module.warn("Splunk service did not restart properly after removing deployment server")
+            return False
+        return True
+    return False
+
+
 def start_splunk(module: AnsibleModule, splunk_home: str) -> tuple[int, str, str]:
     """Start Splunk for the first time with license acceptance."""
     if module.check_mode:
@@ -517,6 +605,7 @@ def main() -> None:
             username=dict(type='str'),
             password=dict(type='str', no_log=True),
             forward_servers=dict(type='list', elements='str'),
+            deployment_server=dict(type='str'),
         ),
         required_if=[
             ('state', 'present', ['version', 'version_hash', 'username', 'password']),
@@ -531,6 +620,7 @@ def main() -> None:
     username = module.params['username']
     password = module.params['password']
     forward_servers = module.params['forward_servers']
+    deployment_server = module.params['deployment_server']
     download_dir = '/opt'
     splunk_home = '/opt/splunkforwarder'
 
@@ -591,6 +681,19 @@ def main() -> None:
             if manage_forward_servers(module, splunk_home, username, password, to_remove, action='remove'):
                 result['changed'] = True
             result['msg'] = f"Splunk Universal Forwarder {version} is already installed - forward-servers set: {forward_servers}"
+        # Check and configure deployment server if specified
+        if deployment_server is not None:
+            current_deployment_server = get_deployment_server(module, splunk_home)
+            if deployment_server == '':
+                # Empty string means remove deployment server
+                if current_deployment_server is not None:
+                    if remove_deployment_server(module, splunk_home):
+                        result['changed'] = True
+                        result['msg'] = f"Splunk Universal Forwarder {version} is already installed - deployment server removed"
+            elif current_deployment_server != deployment_server:
+                if set_deployment_server(module, splunk_home, username, password, deployment_server):
+                    result['changed'] = True
+                    result['msg'] = f"Splunk Universal Forwarder {version} is already installed - deployment server set to: {deployment_server}"
         module.exit_json(**result)
 
     rpm_filename = f"splunkforwarder-{version}-{version_hash}.{cpu_arch}.rpm"
@@ -655,6 +758,16 @@ def main() -> None:
             manage_forward_servers(module, splunk_home, username, password, to_add, action='add')
         if to_remove:
             manage_forward_servers(module, splunk_home, username, password, to_remove, action='remove')
+
+    # Configure deployment server if specified
+    if deployment_server is not None:
+        current_deployment_server = get_deployment_server(module, splunk_home)
+        if deployment_server == '':
+            # Empty string means remove deployment server
+            if current_deployment_server is not None:
+                remove_deployment_server(module, splunk_home)
+        elif current_deployment_server != deployment_server:
+            set_deployment_server(module, splunk_home, username, password, deployment_server)
 
     result['changed'] = True
     result['msg'] = f"Splunk Universal Forwarder {version} installed and started successfully"
