@@ -296,5 +296,3 @@ splunk_restarted_for_deploy_clear:
   type: bool
   returned: when deployment_server is set to NONE
 """
-
-

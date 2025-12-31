@@ -126,4 +126,3 @@ service:
       description: Service startup type (Automatic, Manual, etc.).
       type: str
 """
-

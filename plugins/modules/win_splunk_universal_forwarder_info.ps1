@@ -69,7 +69,7 @@ try {
     # Test credentials before attempting to retrieve configuration
     if ($splunkExeExists) {
         $credentialsWork = Test-SplunkCredentials -splunkExe $splunkExe -username $username -password $password
-        
+
         if (-not $credentialsWork) {
             $module.FailJson("The provided credentials are invalid. Please provide correct Splunk admin credentials.")
         }

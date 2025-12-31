@@ -79,24 +79,24 @@ function Get-InstalledSplunkForwarderVersionInfo {
         if (-not $out) { return $null }
 
         $text = ($out | Out-String)
-        
+
         # Parse version (e.g., "Splunk Universal Forwarder 10.0.1 (build c486717c322b)")
         $versionMatch = [regex]::Match($text, "(\d+\.\d+\.\d+)")
         $releaseIdMatch = [regex]::Match($text, "\(build\s+([a-f0-9]+)\)")
-        
+
         $result = @{
             version = $null
             release_id = $null
         }
-        
+
         if ($versionMatch.Success) {
             $result.version = $versionMatch.Groups[1].Value
         }
-        
+
         if ($releaseIdMatch.Success) {
             $result.release_id = $releaseIdMatch.Groups[1].Value
         }
-        
+
         return $result
     }
     catch {
@@ -198,4 +198,3 @@ Export-ModuleMember -Function @(
     'Get-CurrentForwardServers',
     'Test-SplunkCredentials'
 )
-

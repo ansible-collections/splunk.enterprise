@@ -154,7 +154,7 @@ function Compare-SemanticVersion {
     for ($i = 0; $i -lt 3; $i++) {
         $v1Num = 0
         $v2Num = 0
-        
+
         if ($i -lt $v1Parts.Count) {
             [int]::TryParse($v1Parts[$i], [ref]$v1Num) | Out-Null
         }
@@ -204,7 +204,7 @@ function Test-FileChecksum {
 
     # Read the checksum file content
     $checksumContent = Get-Content -Path $checksumFilePath -Raw
-    
+
     # Parse the expected hash from the checksum file
     if ($checksumContent -match 'SHA512\([^\)]+\)=\s*([0-9a-fA-F]+)') {
         $expectedHash = $matches[1].Trim().ToUpper()
@@ -252,12 +252,12 @@ function Install-SplunkUniversalForwarder {
         "AGREETOLICENSE=Yes",
         "/l*v", "`"$(Join-Path $tempDir 'splunk_install.log')`""
     )
-    
+
     # Add installation directory if specified
     if (-not [string]::IsNullOrWhiteSpace($installDir)) {
         $msiArgs += "INSTALLDIR=`"$installDir`""
     }
-    
+
     # Add service account configuration based on type
     switch ($serviceAccountType) {
         "local_system" {
@@ -274,17 +274,17 @@ function Install-SplunkUniversalForwarder {
             $msiArgs += "LOGON_PASSWORD=`"$serviceLogonPassword`""
         }
     }
-    
+
     $msiArgs += "/qn"
     $msiArgs += "/norestart"
-    
+
     $proc = Start-Process -FilePath "msiexec.exe" -ArgumentList $msiArgs -Wait -PassThru
     $result.exitCode = $proc.ExitCode
-    
+
     if ($proc.ExitCode -ne 0 -and $proc.ExitCode -ne 3010) {
         $module.FailJson("msiexec install/upgrade failed with exit code $($proc.ExitCode)")
     }
-    
+
     if ($proc.ExitCode -eq 3010) {
         $result.rebootRequired = $true
         $module.Warn("A system reboot is required to complete the Splunk Universal Forwarder installation/upgrade. MSI returned exit code 3010.")
@@ -334,7 +334,7 @@ function Get-DesiredSplunkConfigPlan {
     }
 
     $currentDeployPoll = Get-CurrentDeployPoll -splunkExe $splunkExe
-    
+
     # Handle deployment server
     if ($clearDeploymentServer) {
         # User explicitly requested to clear deployment server
@@ -427,7 +427,7 @@ try {
         $wouldInstall = $false
         $wouldUpgrade = $false
         $versionAction = "none"
-        
+
         if (-not $isInstalled) {
             $wouldInstall = $true
             $versionAction = "install"
@@ -472,14 +472,14 @@ try {
                 if ($parts.Count -ne 2) {
                     $module.FailJson("deployment_server must be in 'ip:port' format or 'NONE' to clear. Invalid: '$deploymentServer'")
                 }
-                
+
                 $ip = $parts[0].Trim()
                 $portStr = $parts[1].Trim()
-                
+
                 if ([string]::IsNullOrWhiteSpace($ip)) {
                     $module.FailJson("IP/hostname cannot be empty in deployment_server: '$deploymentServer'")
                 }
-                
+
                 try {
                     $portInt = [int]$portStr
                     if ($portInt -le 0 -or $portInt -gt 65535) {
@@ -489,7 +489,7 @@ try {
                 catch {
                     $module.FailJson("Port must be a valid integer in deployment_server: '$deploymentServer'")
                 }
-                
+
                 $desiredDeploymentServer = "{0}:{1}" -f $ip, $portInt
             }
         }
@@ -502,20 +502,20 @@ try {
             foreach ($serverStr in $forwardServers) {
                 # Skip null/empty entries that might come from YAML parsing
                 if ($null -eq $serverStr -or [string]::IsNullOrWhiteSpace($serverStr)) { continue }
-                
+
                 # Parse "ip:port" format
                 $parts = $serverStr -split ":", 2
                 if ($parts.Count -ne 2) {
                     $module.FailJson("forward_servers entries must be in 'ip:port' format. Invalid: '$serverStr'")
                 }
-                
+
                 $ip = $parts[0].Trim()
                 $portStr = $parts[1].Trim()
-                
+
                 if ([string]::IsNullOrWhiteSpace($ip)) {
                     $module.FailJson("IP address cannot be empty in forward_servers entry: '$serverStr'")
                 }
-                
+
                 try {
                     $portInt = [int]$portStr
                     if ($portInt -le 0 -or $portInt -gt 65535) {
@@ -525,7 +525,7 @@ try {
                 catch {
                     $module.FailJson("Port must be a valid integer in forward_servers entry: '$serverStr'")
                 }
-                
+
                 $tmpDesired += ("{0}:{1}" -f $ip, $portInt)
             }
             # Set desiredForwardServers to the array (empty or with values)
@@ -538,11 +538,11 @@ try {
 USERNAME = $splunkUsername
 PASSWORD = $splunkPassword
 "@
-        
+
         # Check if we need to write/update the seed file
         # Only write seed on new install. On existing install, verify credentials work.
         $wouldWriteSeed = $false
-        
+
         if ($wouldInstall) {
             # New install - we'll need to set credentials
             $wouldWriteSeed = $true
@@ -550,11 +550,11 @@ PASSWORD = $splunkPassword
         elseif ($isInstalled -and $splunkExeExists) {
             # Splunk is already installed - test if the provided credentials work
             $credentialsWork = Test-SplunkCredentials -splunkExe $splunkExe -username $splunkUsername -password $splunkPassword
-            
+
             if (-not $credentialsWork) {
                 $module.FailJson("Splunk Universal Forwarder is already installed but the provided credentials are invalid. Please provide the correct credentials.")
             }
-            
+
             # Credentials are valid - no need to update
             $wouldWriteSeed = $false
         }
@@ -562,7 +562,7 @@ PASSWORD = $splunkPassword
             # Edge case: installed but no splunk.exe (shouldn't happen normally)
             $wouldWriteSeed = $true
         }
-        
+
         $wouldSetDeployPoll = $false
         $wouldAddForwardServers = [string[]]@()
         $wouldRemoveForwardServers = [string[]]@()
@@ -572,12 +572,12 @@ PASSWORD = $splunkPassword
             $module.Result.changed = $true
 
             Ensure-Directory -path $tempDir | Out-Null
-            
+
             # Check if files already exist
             $msiExists = Test-Path -LiteralPath $msiPath
             $checksumExists = Test-Path -LiteralPath $checksumPath
             $needsDownload = $false
-            
+
             # If both files exist, try to verify checksum first
             if ($msiExists -and $checksumExists) {
                 try {
@@ -592,7 +592,7 @@ PASSWORD = $splunkPassword
                 # One or both files missing - need to download
                 $needsDownload = $true
             }
-            
+
             # Download files if needed
             if ($needsDownload) {
                 # Download the SHA512 checksum file first
@@ -602,7 +602,7 @@ PASSWORD = $splunkPassword
                 catch {
                     $module.FailJson("Failed to download checksum file from ${checksumUrl}: $($_.Exception.Message)")
                 }
-                
+
                 # Download the MSI installer
                 try {
                     Invoke-DownloadFile -url $downloadUrl -destPath $msiPath
@@ -610,7 +610,7 @@ PASSWORD = $splunkPassword
                 catch {
                     $module.FailJson("Failed to download MSI from ${downloadUrl}: $($_.Exception.Message)")
                 }
-                
+
                 # Verify the checksum
                 try {
                     Test-FileChecksum -filePath $msiPath -checksumFilePath $checksumPath
@@ -619,7 +619,7 @@ PASSWORD = $splunkPassword
                     $module.FailJson("Checksum verification failed: $($_.Exception.Message)")
                 }
             }
-            
+
             # This is comemnted for now to check whether this is even needed.
             # # If the product is registered in MSI but UF binaries/service are missing, clean up the broken state
             # if ($wouldInstall -and $regInfo -and $regInfo.product_code -and (-not $splunkExeExists) -and ($null -eq $svcInfo)) {
@@ -647,7 +647,7 @@ PASSWORD = $splunkPassword
                 -serviceLogonPassword $serviceLogonPassword `
                 -tempDir $tempDir `
                 -installDir $installDir
-            
+
             if ($installResult.rebootRequired) {
                 $module.Result.reboot_required = $true
             }
@@ -694,7 +694,7 @@ PASSWORD = $splunkPassword
         $serviceRunningForQuery = ($null -ne $svcInfo) -and ($svcInfo.status -eq "Running")
         $canQueryCurrentState = (Test-Path -LiteralPath $splunkExe) -and $serviceRunningForQuery
         $treatCurrentStateAsEmpty = (-not $canQueryCurrentState)
-        
+
         $plan = Get-DesiredSplunkConfigPlan -splunkExe $splunkExe -desiredDeploymentServer $desiredDeploymentServer -clearDeploymentServer $shouldClearDeploymentServer -desiredForwardServers $desiredForwardServers -treatCurrentStateAsEmpty $treatCurrentStateAsEmpty
         $wouldSetDeployPoll = [bool]$plan.wouldSetDeployPoll
         $wouldClearDeployPoll = [bool]$plan.wouldClearDeployPoll
@@ -785,7 +785,7 @@ PASSWORD = $splunkPassword
             if ($proc.ExitCode -ne 0 -and $proc.ExitCode -ne 3010) {
                 $module.FailJson(("msiexec uninstall failed with exit code {0}" -f $proc.ExitCode))
             }
-            if ($proc.ExitCode -eq 3010) { 
+            if ($proc.ExitCode -eq 3010) {
                 $module.Result.reboot_required = $true
                 $module.Warn("A system reboot is required to complete the Splunk Universal Forwarder uninstallation. MSI returned exit code 3010.")
             }
@@ -804,7 +804,7 @@ PASSWORD = $splunkPassword
 
         if ($purge) {
             $module.Result.changed = $true
-            
+
             # Remove installation directory
             $purgeDir = $installDir
             if ($regInfo -and $regInfo.install_location) { $purgeDir = $regInfo.install_location }
@@ -815,7 +815,7 @@ PASSWORD = $splunkPassword
             else {
                 $module.Result.purged_install_dir = $false
             }
-            
+
             # Remove temp directory and its contents
             if ($tempDir -and (Test-Path -LiteralPath $tempDir)) {
                 Remove-Item -LiteralPath $tempDir -Recurse -Force -ErrorAction SilentlyContinue
