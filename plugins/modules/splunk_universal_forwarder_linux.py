@@ -328,7 +328,7 @@ def verify_checksum(module: AnsibleModule, rpm_path: str, checksum_path: str) ->
         module.fail_json(msg=f"Error verifying checksum: {str(e)}")
 
 
-def install_rpm(module: AnsibleModule, rpm_path: str) -> tuple[int, str, str]:
+def install_rpm(module: AnsibleModule, rpm_path: str):
     """Install the RPM package."""
     if module.check_mode:
         return 0, "Check mode: would install RPM", ""
@@ -336,7 +336,7 @@ def install_rpm(module: AnsibleModule, rpm_path: str) -> tuple[int, str, str]:
     return rc, out, err
 
 
-def remove_rpm(module: AnsibleModule, package_name: str) -> tuple[int, str, str]:
+def remove_rpm(module: AnsibleModule, package_name: str):
     """Remove the RPM package."""
     if module.check_mode:
         return 0, "Check mode: would remove RPM", ""
@@ -514,7 +514,7 @@ def remove_deployment_server(module: AnsibleModule, splunk_home: str) -> bool:
     return False
 
 
-def start_splunk(module: AnsibleModule, splunk_home: str) -> tuple[int, str, str]:
+def start_splunk(module: AnsibleModule, splunk_home: str):
     """Start Splunk for the first time with license acceptance."""
     if module.check_mode:
         return 0, "Check mode: would start Splunk", ""
@@ -533,7 +533,7 @@ def start_splunk(module: AnsibleModule, splunk_home: str) -> tuple[int, str, str
 def enable_systemd_service(
     module: AnsibleModule,
     splunk_home: str,
-) -> tuple[int, str, str]:
+):
     """Enable and start the SplunkForwarder systemd service using Splunk commands."""
     if module.check_mode:
         return 0, "Check mode: would enable/start SplunkForwarder systemd service", ""
