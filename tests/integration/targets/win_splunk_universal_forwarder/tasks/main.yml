@@ -1,0 +1,3 @@
+---
+- name: Run Splunk Universal Forwarder Windows integration tests
+  ansible.builtin.include_tasks: tests.yml
