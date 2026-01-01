@@ -1,0 +1,497 @@
+---
+# Integration tests for splunk_universal_forwarder_linux and splunk_universal_forwarder_linux_info modules
+
+# ============================================================================
+# Test 1: Info module - State absent (before installation)
+# ============================================================================
+- name: Ensure Splunk is not installed before tests
+  splunk.enterprise.splunk_universal_forwarder_linux:
+    state: absent
+
+- name: Gather info when Splunk is not installed
+  splunk.enterprise.splunk_universal_forwarder_linux_info:
+    username: "{{ splunk_username }}"
+    password: "{{ splunk_password }}"
+  register: info_absent
+
+- name: Verify info when absent
+  ansible.builtin.assert:
+    that:
+      - info_absent is not changed
+      - info_absent.state == 'absent'
+      - info_absent.splunk_home == '/opt/splunkforwarder'
+      - info_absent.rhel_version in ['8', '9', '10']
+    fail_msg: "Info module should report state=absent when Splunk is not installed"
+
+# ============================================================================
+# Test 2: Check mode - Install (should not make changes)
+# ============================================================================
+- name: Test check mode - Install Splunk Universal Forwarder
+  splunk.enterprise.splunk_universal_forwarder_linux:
+    state: present
+    version: "{{ splunk_version }}"
+    release_id: "{{ splunk_release_id }}"
+    username: "{{ splunk_username }}"
+    password: "{{ splunk_password }}"
+    cpu: "{{ splunk_cpu }}"
+    forward_servers: "{{ test_forward_servers_install }}"
+  check_mode: true
+  register: check_mode_install
+
+- name: Verify check mode install result
+  ansible.builtin.assert:
+    that:
+      - check_mode_install is changed
+    fail_msg: "Check mode install should report changed"
+
+- name: Verify Splunk is still not installed after check mode
+  splunk.enterprise.splunk_universal_forwarder_linux_info:
+    username: "{{ splunk_username }}"
+    password: "{{ splunk_password }}"
+  register: info_after_check_mode
+
+- name: Verify check mode did not install
+  ansible.builtin.assert:
+    that:
+      - info_after_check_mode.state == 'absent'
+    fail_msg: "Check mode should not have installed Splunk"
+
+# ============================================================================
+# Test 3: State present - Fresh installation
+# ============================================================================
+- name: Install Splunk Universal Forwarder
+  splunk.enterprise.splunk_universal_forwarder_linux:
+    state: present
+    version: "{{ splunk_version }}"
+    release_id: "{{ splunk_release_id }}"
+    username: "{{ splunk_username }}"
+    password: "{{ splunk_password }}"
+    cpu: "{{ splunk_cpu }}"
+    forward_servers: "{{ test_forward_servers_install }}"
+  register: install_result
+
+- name: Verify installation result
+  ansible.builtin.assert:
+    that:
+      - install_result is changed
+      - install_result.version == splunk_version
+      - install_result.release_id == splunk_release_id
+      - install_result.cpu_arch == 'x86_64'
+      - install_result.splunk_home == '/opt/splunkforwarder'
+    fail_msg: "Installation failed or returned unexpected values"
+
+# ============================================================================
+# Test 4: Info module - Verify installation details
+# ============================================================================
+- name: Gather info after installation
+  splunk.enterprise.splunk_universal_forwarder_linux_info:
+    username: "{{ splunk_username }}"
+    password: "{{ splunk_password }}"
+  register: info_installed
+
+- name: Verify info matches installation
+  ansible.builtin.assert:
+    that:
+      - info_installed is not changed
+      - info_installed.state == 'present'
+      - info_installed.version == splunk_version
+      - info_installed.release_id == splunk_release_id
+      - info_installed.cpu == 'x86_64'
+      - info_installed.splunk_home == '/opt/splunkforwarder'
+      - info_installed.rhel_version in ['8', '9', '10']
+      - info_installed.forward_servers is defined
+      - info_installed.forward_servers | length > 0
+      - test_forward_servers_install[0] in info_installed.forward_servers
+    fail_msg: "Info module should return correct installation details"
+
+# ============================================================================
+# Test 5: Idempotency - Running same install again should not change
+# ============================================================================
+- name: Install Splunk Universal Forwarder (idempotency test)
+  splunk.enterprise.splunk_universal_forwarder_linux:
+    state: present
+    version: "{{ splunk_version }}"
+    release_id: "{{ splunk_release_id }}"
+    username: "{{ splunk_username }}"
+    password: "{{ splunk_password }}"
+    cpu: "{{ splunk_cpu }}"
+    forward_servers: "{{ test_forward_servers_install }}"
+  register: idempotent_result
+
+- name: Verify idempotency
+  ansible.builtin.assert:
+    that:
+      - idempotent_result is not changed
+    fail_msg: "Module is not idempotent - reported change when none expected"
+
+# ============================================================================
+# Test 6: Upgrade to newer version
+# ============================================================================
+- name: Upgrade Splunk Universal Forwarder to {{ splunk_upgrade_version }}
+  splunk.enterprise.splunk_universal_forwarder_linux:
+    state: present
+    version: "{{ splunk_upgrade_version }}"
+    release_id: "{{ splunk_upgrade_release_id }}"
+    username: "{{ splunk_username }}"
+    password: "{{ splunk_password }}"
+    cpu: "{{ splunk_cpu }}"
+  register: upgrade_result
+
+- name: Verify upgrade result
+  ansible.builtin.assert:
+    that:
+      - upgrade_result is changed
+      - upgrade_result.version == splunk_upgrade_version
+      - upgrade_result.release_id == splunk_upgrade_release_id
+    fail_msg: "Upgrade failed or returned unexpected values"
+
+- name: Verify upgrade via info module
+  splunk.enterprise.splunk_universal_forwarder_linux_info:
+    username: "{{ splunk_username }}"
+    password: "{{ splunk_password }}"
+  register: info_upgraded
+
+- name: Verify info shows upgraded version - and config was preserved from previous version
+  ansible.builtin.assert:
+    that:
+      - info_upgraded.state == 'present'
+      - info_upgraded.version == splunk_upgrade_version
+      - info_upgraded.release_id == splunk_upgrade_release_id
+      - info_upgraded.forward_servers | length > 0
+      - test_forward_servers_install[0] in info_upgraded.forward_servers # check that the forward servers are still the same after upgrade
+    fail_msg: "Info module should show upgraded version"
+
+# ============================================================================
+# Test 7: Upgrade idempotency
+# ============================================================================
+- name: Upgrade Splunk Universal Forwarder (idempotency test)
+  splunk.enterprise.splunk_universal_forwarder_linux:
+    state: present
+    version: "{{ splunk_upgrade_version }}"
+    release_id: "{{ splunk_upgrade_release_id }}"
+    username: "{{ splunk_username }}"
+    password: "{{ splunk_password }}"
+    cpu: "{{ splunk_cpu }}"
+  register: upgrade_idempotent
+
+- name: Verify upgrade idempotency
+  ansible.builtin.assert:
+    that:
+      - upgrade_idempotent is not changed
+    fail_msg: "Upgrade should be idempotent when already at target version"
+
+# ============================================================================
+# Test 8: Downgrade attempt should fail
+# ============================================================================
+- name: Attempt to downgrade Splunk Universal Forwarder (should fail)
+  splunk.enterprise.splunk_universal_forwarder_linux:
+    state: present
+    version: "{{ splunk_version }}"
+    release_id: "{{ splunk_release_id }}"
+    username: "{{ splunk_username }}"
+    password: "{{ splunk_password }}"
+    cpu: "{{ splunk_cpu }}"
+  register: downgrade_result
+  failed_when: "'Only universal forwarder upgrades are allowed' not in downgrade_result.msg"
+
+- name: Verify version unchanged after failed downgrade
+  splunk.enterprise.splunk_universal_forwarder_linux_info:
+    username: "{{ splunk_username }}"
+    password: "{{ splunk_password }}"
+  register: info_after_downgrade
+
+- name: Verify still at upgraded version
+  ansible.builtin.assert:
+    that:
+      - info_after_downgrade.version == splunk_upgrade_version
+    fail_msg: "Version should remain at upgraded version after failed downgrade"
+
+# ============================================================================
+# Test 9: Configure forward servers
+# ============================================================================
+- name: Configure forward servers
+  splunk.enterprise.splunk_universal_forwarder_linux:
+    state: present
+    version: "{{ splunk_upgrade_version }}"
+    release_id: "{{ splunk_release_id }}"
+    username: "{{ splunk_username }}"
+    password: "{{ splunk_password }}"
+    cpu: "{{ splunk_cpu }}"
+    forward_servers: "{{ test_forward_servers }}"
+  register: forward_servers_result
+
+- name: Verify forward servers configuration
+  ansible.builtin.assert:
+    that:
+      - forward_servers_result is changed
+    fail_msg: "Forward servers configuration should report changed"
+
+- name: Verify forward servers via info module
+  splunk.enterprise.splunk_universal_forwarder_linux_info:
+    username: "{{ splunk_username }}"
+    password: "{{ splunk_password }}"
+  register: info_forward_servers
+
+- name: Verify forward servers in info
+  ansible.builtin.assert:
+    that:
+      - info_forward_servers.forward_servers | length > 0
+      - test_forward_servers[0] in info_forward_servers.forward_servers
+    fail_msg: "Info module should return configured forward servers"
+
+# ============================================================================
+# Test 10: Forward servers idempotency
+# ============================================================================
+- name: Configure forward servers (idempotency test)
+  splunk.enterprise.splunk_universal_forwarder_linux:
+    state: present
+    version: "{{ splunk_upgrade_version }}"
+    release_id: "{{ splunk_release_id }}"
+    username: "{{ splunk_username }}"
+    password: "{{ splunk_password }}"
+    cpu: "{{ splunk_cpu }}"
+    forward_servers: "{{ test_forward_servers }}"
+  register: forward_servers_idempotent
+
+- name: Verify forward servers idempotency
+  ansible.builtin.assert:
+    that:
+      - forward_servers_idempotent is not changed
+    fail_msg: "Forward servers should be idempotent"
+
+# ============================================================================
+# Test 11: Update forward servers
+# ============================================================================
+- name: Update forward servers
+  splunk.enterprise.splunk_universal_forwarder_linux:
+    state: present
+    version: "{{ splunk_upgrade_version }}"
+    release_id: "{{ splunk_release_id }}"
+    username: "{{ splunk_username }}"
+    password: "{{ splunk_password }}"
+    cpu: "{{ splunk_cpu }}"
+    forward_servers: "{{ test_forward_servers_updated }}"
+  register: forward_servers_update
+
+- name: Verify forward servers update
+  ansible.builtin.assert:
+    that:
+      - forward_servers_update is changed
+    fail_msg: "Forward servers update should report changed"
+
+# ============================================================================
+# Test 12: Remove forward servers (empty list)
+# ============================================================================
+- name: Remove all forward servers
+  splunk.enterprise.splunk_universal_forwarder_linux:
+    state: present
+    version: "{{ splunk_upgrade_version }}"
+    release_id: "{{ splunk_release_id }}"
+    username: "{{ splunk_username }}"
+    password: "{{ splunk_password }}"
+    cpu: "{{ splunk_cpu }}"
+    forward_servers: []
+  register: forward_servers_remove
+- name: Verify forward servers are empty via info module
+  splunk.enterprise.splunk_universal_forwarder_linux_info:
+    username: "{{ splunk_username }}"
+    password: "{{ splunk_password }}"
+  register: info_no_forward_servers
+
+- name: Assert that forward servers list is empty
+  ansible.builtin.assert:
+    that:
+      - info_no_forward_servers.forward_servers is defined
+      - info_no_forward_servers.forward_servers | length == 0
+    fail_msg: "Forward servers list should be empty after removal"
+
+- name: Verify forward servers removal
+  ansible.builtin.assert:
+    that:
+      - forward_servers_remove is changed
+    fail_msg: "Forward servers removal should report changed and forward_servers should be empty"
+
+# ============================================================================
+# Test 13: Configure deployment server
+# ============================================================================
+- name: Configure deployment server
+  splunk.enterprise.splunk_universal_forwarder_linux:
+    state: present
+    version: "{{ splunk_upgrade_version }}"
+    release_id: "{{ splunk_release_id }}"
+    username: "{{ splunk_username }}"
+    password: "{{ splunk_password }}"
+    cpu: "{{ splunk_cpu }}"
+    deployment_server: "{{ test_deployment_server }}"
+  register: deployment_server_result
+
+- name: Verify deployment server configuration
+  ansible.builtin.assert:
+    that:
+      - deployment_server_result is changed
+    fail_msg: "Deployment server configuration should report changed"
+
+- name: Verify deployment server via info module
+  splunk.enterprise.splunk_universal_forwarder_linux_info:
+    username: "{{ splunk_username }}"
+    password: "{{ splunk_password }}"
+  register: info_deployment_server
+
+- name: Verify deployment server in info
+  ansible.builtin.assert:
+    that:
+      - info_deployment_server.deployment_server is defined
+      - info_deployment_server.deployment_server == test_deployment_server
+    fail_msg: "Info module should return configured deployment server"
+
+# ============================================================================
+# Test 14: Deployment server idempotency
+# ============================================================================
+- name: Configure deployment server (idempotency test)
+  splunk.enterprise.splunk_universal_forwarder_linux:
+    state: present
+    version: "{{ splunk_upgrade_version }}"
+    release_id: "{{ splunk_release_id }}"
+    username: "{{ splunk_username }}"
+    password: "{{ splunk_password }}"
+    cpu: "{{ splunk_cpu }}"
+    deployment_server: "{{ test_deployment_server }}"
+  register: deployment_server_idempotent
+
+- name: Verify deployment server idempotency
+  ansible.builtin.assert:
+    that:
+      - deployment_server_idempotent is not changed
+    fail_msg: "Deployment server should be idempotent"
+
+# ============================================================================
+# Test 15: Update deployment server
+# ============================================================================
+- name: Update deployment server
+  splunk.enterprise.splunk_universal_forwarder_linux:
+    state: present
+    version: "{{ splunk_upgrade_version }}"
+    release_id: "{{ splunk_release_id }}"
+    username: "{{ splunk_username }}"
+    password: "{{ splunk_password }}"
+    cpu: "{{ splunk_cpu }}"
+    deployment_server: "{{ test_deployment_server_updated }}"
+  register: deployment_server_update
+
+- name: Verify deployment server update via info module
+  splunk.enterprise.splunk_universal_forwarder_linux_info:
+    username: "{{ splunk_username }}"
+    password: "{{ splunk_password }}"
+  register: info_deployment_server_updated
+
+- name: Assert info module returns updated deployment server
+  ansible.builtin.assert:
+    that:
+      - info_deployment_server_updated.deployment_server == test_deployment_server_updated
+    fail_msg: "Info module should return the updated deployment server"
+
+- name: Verify deployment server update
+  ansible.builtin.assert:
+    that:
+      - deployment_server_update is changed
+    fail_msg: "Deployment server update should report changed and set the correct server"
+
+# ============================================================================
+# Test 16: Remove deployment server (empty string)
+# ============================================================================
+- name: Remove deployment server
+  splunk.enterprise.splunk_universal_forwarder_linux:
+    state: present
+    version: "{{ splunk_upgrade_version }}"
+    release_id: "{{ splunk_release_id }}"
+    username: "{{ splunk_username }}"
+    password: "{{ splunk_password }}"
+    cpu: "{{ splunk_cpu }}"
+    deployment_server: ""
+  register: deployment_server_remove
+
+- name: Verify deployment server removal
+  ansible.builtin.assert:
+    that:
+      - deployment_server_remove is changed
+    fail_msg: "Deployment server removal should report changed"
+
+- name: Verify deployment server removed via info module
+  splunk.enterprise.splunk_universal_forwarder_linux_info:
+    username: "{{ splunk_username }}"
+    password: "{{ splunk_password }}"
+  register: info_no_deployment_server
+
+- name: Verify deployment server is removed in info
+  ansible.builtin.assert:
+    that:
+      - info_no_deployment_server.deployment_server == ""
+    fail_msg: "Info module should not return deployment_server when not configured"
+
+# ============================================================================
+# Test 17: Check mode - Uninstall
+# ============================================================================
+- name: Test check mode - Uninstall Splunk Universal Forwarder
+  splunk.enterprise.splunk_universal_forwarder_linux:
+    state: absent
+  check_mode: true
+  register: check_mode_uninstall
+
+- name: Verify check mode uninstall result
+  ansible.builtin.assert:
+    that:
+      - check_mode_uninstall is changed
+    fail_msg: "Check mode uninstall should report changed"
+
+- name: Verify Splunk is still installed after check mode uninstall
+  splunk.enterprise.splunk_universal_forwarder_linux_info:
+    username: "{{ splunk_username }}"
+    password: "{{ splunk_password }}"
+  register: info_after_check_mode_uninstall
+
+- name: Verify check mode did not uninstall
+  ansible.builtin.assert:
+    that:
+      - info_after_check_mode_uninstall.state == 'present'
+    fail_msg: "Check mode should not have uninstalled Splunk"
+
+# ============================================================================
+# Test 18: State absent - Uninstall
+# ============================================================================
+- name: Uninstall Splunk Universal Forwarder
+  splunk.enterprise.splunk_universal_forwarder_linux:
+    state: absent
+  register: uninstall_result
+
+- name: Verify uninstall result
+  ansible.builtin.assert:
+    that:
+      - uninstall_result is changed
+      - uninstall_result.msg == "Splunk Universal Forwarder removed successfully"
+    fail_msg: "Uninstall failed or returned unexpected values"
+
+- name: Verify uninstall via info module
+  splunk.enterprise.splunk_universal_forwarder_linux_info:
+    username: "{{ splunk_username }}"
+    password: "{{ splunk_password }}"
+  register: info_uninstalled
+
+- name: Verify info shows absent after uninstall
+  ansible.builtin.assert:
+    that:
+      - info_uninstalled.state == 'absent'
+    fail_msg: "Info module should report state=absent after uninstall"
+
+# ============================================================================
+# Test 19: State absent idempotency - Already uninstalled
+# ============================================================================
+- name: Uninstall Splunk Universal Forwarder (idempotency test)
+  splunk.enterprise.splunk_universal_forwarder_linux:
+    state: absent
+  register: uninstall_idempotent
+
+- name: Verify uninstall idempotency
+  ansible.builtin.assert:
+    that:
+      - uninstall_idempotent is not changed
+    fail_msg: "Uninstall should be idempotent when already absent"

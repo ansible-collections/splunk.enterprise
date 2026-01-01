@@ -1,0 +1,28 @@
+---
+# Test variables for splunk_universal_forwarder_linux integration tests
+
+splunk_version: "9.3.8"
+splunk_release_id: "fbf0510dff69"
+
+# Upgrade version for upgrade tests
+splunk_upgrade_version: "9.4.7"
+splunk_upgrade_release_id: "2a9293b80994"
+
+splunk_username: "admin"
+splunk_password: "testpassword123"
+
+# CPU architecture (64-bit only)
+splunk_cpu: "64-bit"
+
+test_forward_servers_install:
+  - "splunk-indexer1.example.com:9997"
+
+test_forward_servers:
+  - "splunk-indexer2.example.com:9997"
+  - "splunk-indexer3.example.com:9997"
+
+test_forward_servers_updated:
+  - "splunk-indexer4.example.com:9997"
+
+test_deployment_server: "deployment-server.example.com:8089"
+test_deployment_server_updated: "deployment-server2.example.com:8089"
