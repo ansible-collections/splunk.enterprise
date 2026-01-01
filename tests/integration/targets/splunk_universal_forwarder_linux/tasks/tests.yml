@@ -151,7 +151,7 @@
     password: "{{ splunk_password }}"
   register: info_upgraded
 
-- name: Verify info shows upgraded version
+- name: Verify info shows upgraded version - and config was preserved from previous version
   ansible.builtin.assert:
     that:
       - info_upgraded.state == 'present'

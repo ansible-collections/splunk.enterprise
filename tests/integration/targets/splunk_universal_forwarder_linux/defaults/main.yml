@@ -1,12 +1,12 @@
 ---
 # Test variables for splunk_universal_forwarder_linux integration tests
 
-splunk_version: "10.0.0"
-splunk_release_id: "e8eb0c4654f8"
+splunk_version: "9.3.8"
+splunk_release_id: "fbf0510dff69"
 
 # Upgrade version for upgrade tests
-splunk_upgrade_version: "10.0.1"
-splunk_upgrade_release_id: "c486717c322b"
+splunk_upgrade_version: "9.4.7"
+splunk_upgrade_release_id: "2a9293b80994"
 
 splunk_username: "admin"
 splunk_password: "testpassword123"

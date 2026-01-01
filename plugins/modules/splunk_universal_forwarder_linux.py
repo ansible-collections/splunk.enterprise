@@ -223,6 +223,7 @@ import hashlib
 import os
 import re
 import shutil
+import time
 from pathlib import Path
 
 from ansible.module_utils.basic import AnsibleModule
@@ -525,6 +526,7 @@ def start_splunk(module: AnsibleModule, splunk_home: str):
         [splunk_bin, "start", "--accept-license", "--answer-yes"],
         environ_update=env,
     )
+    time.sleep(15)
     if not check_splunk_service(module, splunk_home, "start"):
         module.fail_json(msg="Failed to start Splunk service")
     return rc, out, err
@@ -541,6 +543,7 @@ def enable_systemd_service(
     splunk_bin = os.path.join(splunk_home, "bin", "splunk")
 
     rc, out, err = module.run_command([splunk_bin, "stop"], check_rc=False)
+    time.sleep(2)
     if rc != 0:
         module.fail_json(msg=f"Failed to stop Splunk: {err}")
     if check_splunk_service(module, splunk_home, "stop"):
@@ -548,18 +551,18 @@ def enable_systemd_service(
     else:
         module.fail_json(msg="Failed to stop Splunk service")
 
-    rc, out, err = module.run_command(
-        [splunk_bin, "disable", "boot-start"],
-        check_rc=False,
-    )
+    rc, out, err = module.run_command([splunk_bin, "disable", "boot-start"], check_rc=False)
+    time.sleep(2)
     if rc != 0:
         module.fail_json(msg=f"Failed to disable boot-start: {err}")
 
-    rc, out, err = module.run_command([splunk_bin, "enable", "boot-start"])
+    rc, out, err = module.run_command([splunk_bin, "enable", "boot-start"], check_rc=False)
+    time.sleep(2)
     if rc != 0:
         module.fail_json(msg=f"Failed to enable boot-start: {err}")
 
-    rc, out, err = module.run_command([splunk_bin, "start"])
+    rc, out, err = module.run_command([splunk_bin, "start"], check_rc=False)
+    time.sleep(2)
     if rc != 0:
         module.fail_json(msg="Failed to start Splunk")
     if check_splunk_service(module, splunk_home, "start"):
@@ -601,8 +604,6 @@ def check_splunk_service(
             module.log(
                 f"Splunk not yet in desired state '{desired_state}', retrying in {retry_delay}s (attempt {attempt}/{max_retries})",
             )
-            import time
-
             time.sleep(retry_delay)
     # Max retries exhausted
     module.log(

@@ -414,7 +414,10 @@ def test_check_splunk_service_start_success(mock_module):
     mock_module.run_command.return_value = (0, "splunkd is running", "")
     mock_module.log = MagicMock()
 
-    result = check_splunk_service(mock_module, "/opt/splunkforwarder", "start", max_retries=1)
+    with patch("plugins.modules.splunk_universal_forwarder_linux.time.sleep"):
+        result = check_splunk_service(
+            mock_module, "/opt/splunkforwarder", "start", max_retries=1
+        )
 
     assert result is True
     mock_module.fail_json.assert_not_called()
@@ -426,7 +429,10 @@ def test_check_splunk_service_stop_success(mock_module):
     mock_module.run_command.return_value = (3, "splunkd is not running", "")
     mock_module.log = MagicMock()
 
-    result = check_splunk_service(mock_module, "/opt/splunkforwarder", "stop", max_retries=1)
+    with patch("plugins.modules.splunk_universal_forwarder_linux.time.sleep"):
+        result = check_splunk_service(
+            mock_module, "/opt/splunkforwarder", "stop", max_retries=1
+        )
 
     assert result is True
     mock_module.fail_json.assert_not_called()
@@ -463,8 +469,11 @@ def test_check_splunk_service_start_retry_success(mock_module):
         (0, "splunkd is running", ""),
     ]
 
-    with patch("time.sleep"):
-        result = check_splunk_service(mock_module, "/opt/splunkforwarder", "start", max_retries=2, retry_delay=1)
+    with patch("plugins.modules.splunk_universal_forwarder_linux.time.sleep"):
+        result = check_splunk_service(
+            mock_module, "/opt/splunkforwarder", "start",
+            max_retries=2, retry_delay=1
+        )
 
     assert result is True
     assert mock_module.run_command.call_count == 2
@@ -477,8 +486,11 @@ def test_check_splunk_service_max_retries_exhausted(mock_module):
     # Always return not running
     mock_module.run_command.return_value = (3, "splunkd is not running", "")
 
-    with patch("time.sleep"):
-        result = check_splunk_service(mock_module, "/opt/splunkforwarder", "start", max_retries=2, retry_delay=1)
+    with patch("plugins.modules.splunk_universal_forwarder_linux.time.sleep"):
+        result = check_splunk_service(
+            mock_module, "/opt/splunkforwarder", "start",
+            max_retries=2, retry_delay=1
+        )
 
     assert result is False
     assert mock_module.run_command.call_count == 2
