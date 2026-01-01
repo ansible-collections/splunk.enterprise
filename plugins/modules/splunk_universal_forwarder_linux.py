@@ -551,12 +551,16 @@ def enable_systemd_service(
     else:
         module.fail_json(msg="Failed to stop Splunk service")
 
-    rc, out, err = module.run_command([splunk_bin, "disable", "boot-start"], check_rc=False)
+    rc, out, err = module.run_command(
+        [splunk_bin, "disable", "boot-start"], check_rc=False
+    )
     time.sleep(2)
     if rc != 0:
         module.fail_json(msg=f"Failed to disable boot-start: {err}")
 
-    rc, out, err = module.run_command([splunk_bin, "enable", "boot-start"], check_rc=False)
+    rc, out, err = module.run_command(
+        [splunk_bin, "enable", "boot-start"], check_rc=False
+    )
     time.sleep(2)
     if rc != 0:
         module.fail_json(msg=f"Failed to enable boot-start: {err}")
