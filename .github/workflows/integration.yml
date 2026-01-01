@@ -6,7 +6,7 @@ concurrency:
   cancel-in-progress: true
 
 on:
-  pull_request:
+  pull_request_target:
     branches: [main]
     types:
       - labeled
@@ -36,7 +36,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
           path: ansible_collections/splunk/enterprise
 
       - name: Install ansible-core
