@@ -36,7 +36,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
           path: ansible_collections/splunk/enterprise
 
       - name: Install ansible-core

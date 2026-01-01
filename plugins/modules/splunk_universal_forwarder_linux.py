@@ -543,7 +543,7 @@ def enable_systemd_service(
     splunk_bin = os.path.join(splunk_home, "bin", "splunk")
 
     rc, out, err = module.run_command([splunk_bin, "stop"], check_rc=False)
-    time.sleep(2)
+    time.sleep(3)
     if rc != 0:
         module.fail_json(msg=f"Failed to stop Splunk: {err}")
     if check_splunk_service(module, splunk_home, "stop"):
