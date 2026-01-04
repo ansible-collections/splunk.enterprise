@@ -68,7 +68,7 @@ RETURN:
     type: str
     returned: always
     sample: "present"
-    choices: ['present', 'absent']
+    choices: ["present", "absent"]
   version:
     description: Version of Splunk Universal Forwarder that is installed.
     type: str
