@@ -66,11 +66,28 @@ Every voice is important. If you have something on your mind, create an issue or
 
 ## Tested with Ansible
 
-This collection has been tested against the following Ansible versions: >=2.17.0.
+<!--start requires_ansible-->
+## Ansible version compatibility
+
+This collection has been tested against the following Ansible versions: **>=2.17.0**.
+
+Plugins and modules within a collection may be tested with only specific Ansible versions.
+A collection may contain metadata that identifies these versions.
+PEP440 is the schema used to describe the versions of Ansible.
+<!--end requires_ansible-->
+
+## Included content
+
+<!--start collection content-->
+### Modules
+Name | Description
+--- | ---
+[splunk.enterprise.win_splunk_universal_forwarder](https://github.com/ansible-collections/splunk.enterprise/blob/main/docs/splunk.enterprise.win_splunk_universal_forwarder_module.rst)|Install and bootstrap Splunk Universal Forwarder on Windows
+[splunk.enterprise.win_splunk_universal_forwarder_info](https://github.com/ansible-collections/splunk.enterprise/blob/main/docs/splunk.enterprise.win_splunk_universal_forwarder_info_module.rst)|Gather information about Splunk Universal Forwarder on Windows
+
+<!--end collection content-->
 
 ## Using this collection
-
-TBD
 
 ### Installing the Collection from Ansible Galaxy
 

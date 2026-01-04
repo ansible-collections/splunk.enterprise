@@ -1,0 +1,22 @@
+---
+# Splunk Universal Forwarder Windows Integration Test Variables
+
+# Splunk Credentials
+splunk_username: "SplunkAdmin"
+splunk_password: "Ch@ng3d!"
+
+# Base version for initial install
+splunk_version_base: "9.4.7"
+splunk_release_id_base: "2a9293b80994"
+
+# Version for upgrade testing
+splunk_version_upgrade: "10.0.2"
+splunk_release_id_upgrade: "e2d18b4767e9"
+
+# Version for downgrade testing (should fail)
+splunk_version_downgrade: "10.0.0"
+splunk_release_id_downgrade: "e8eb0c4654f8"
+
+# Installation Directories
+splunk_install_dir: "C:\\Program Files\\SplunkUniversalForwarder"
+splunk_temp_dir: "C:\\splunktemp"
