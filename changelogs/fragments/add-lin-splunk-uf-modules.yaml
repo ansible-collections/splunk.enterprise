@@ -1,0 +1,4 @@
+---
+minor_changes:
+  - splunk_universal_forwarder_linux - new module to install and bootstrap Splunk Universal Forwarder on Linux.
+  - splunk_universal_forwarder_linux_info - new module to gather information about Splunk Universal Forwarder on Linux.

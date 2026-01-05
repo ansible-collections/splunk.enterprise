@@ -82,6 +82,8 @@ PEP440 is the schema used to describe the versions of Ansible.
 ### Modules
 Name | Description
 --- | ---
+[splunk.enterprise.splunk_universal_forwarder_linux](https://github.com/ansible-collections/splunk.enterprise/blob/main/docs/splunk.enterprise.splunk_universal_forwarder_linux_module.rst)|Manage Splunk Universal Forwarder installations on RHEL systems
+[splunk.enterprise.splunk_universal_forwarder_linux_info](https://github.com/ansible-collections/splunk.enterprise/blob/main/docs/splunk.enterprise.splunk_universal_forwarder_linux_info_module.rst)|Gather information about Splunk Universal Forwarder installations on RHEL systems
 [splunk.enterprise.win_splunk_universal_forwarder](https://github.com/ansible-collections/splunk.enterprise/blob/main/docs/splunk.enterprise.win_splunk_universal_forwarder_module.rst)|Install and bootstrap Splunk Universal Forwarder on Windows
 [splunk.enterprise.win_splunk_universal_forwarder_info](https://github.com/ansible-collections/splunk.enterprise/blob/main/docs/splunk.enterprise.win_splunk_universal_forwarder_info_module.rst)|Gather information about Splunk Universal Forwarder on Windows
 

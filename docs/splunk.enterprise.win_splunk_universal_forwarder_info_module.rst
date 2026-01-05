@@ -111,20 +111,17 @@ Examples
         username: "SplunkAdmin"
         password: "Ch@ng3d!"
       register: splunk_info
-
     - name: Gather info with custom installation directory
       splunk.enterprise.win_splunk_universal_forwarder_info:
         username: "SplunkAdmin"
         password: "Ch@ng3d!"
         install_dir: "D:\\Splunk\\UniversalForwarder"
       register: splunk_info
-
     - name: Check if Splunk is installed
       splunk.enterprise.win_splunk_universal_forwarder_info:
         username: "SplunkAdmin"
         password: "Ch@ng3d!"
       register: splunk_info
-
     - name: Show configured forward servers
       ansible.builtin.debug:
         msg: "Forward servers: {{ splunk_info.forward_servers }}"

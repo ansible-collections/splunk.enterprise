@@ -2,20 +2,22 @@
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from __future__ import (absolute_import, division, print_function)
+from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+from unittest.mock import MagicMock, mock_open, patch
+
 import pytest
-from unittest.mock import patch, mock_open, MagicMock
+
 from plugins.modules.splunk_universal_forwarder_linux import (
-    get_deployment_server,
-    check_rhel_version,
-    is_splunk_installed,
-    get_installed_version,
     check_if_downgrade,
-    get_existing_forward_servers,
+    check_rhel_version,
     check_splunk_service,
+    get_deployment_server,
+    get_existing_forward_servers,
+    get_installed_version,
+    is_splunk_installed,
 )
 
 
@@ -119,7 +121,9 @@ def test_check_rhel_version_no_version_id(mock_module):
                 check_rhel_version(mock_module)
 
     mock_module.fail_json.assert_called_once()
-    assert "Could not determine RHEL version" in mock_module.fail_json.call_args[1]["msg"]
+    assert (
+        "Could not determine RHEL version" in mock_module.fail_json.call_args[1]["msg"]
+    )
 
 
 def test_check_rhel_version_with_rhel_in_name(mock_module):
@@ -183,7 +187,10 @@ def test_is_splunk_installed_false_wrong_package(mock_module):
 
 def test_get_installed_version_success(mock_module):
     """Test successful version retrieval."""
-    with patch("plugins.modules.splunk_universal_forwarder_linux.is_splunk_installed", return_value=True):
+    with patch(
+        "plugins.modules.splunk_universal_forwarder_linux.is_splunk_installed",
+        return_value=True,
+    ):
         mock_module.run_command.return_value = (0, "10.0.0", "")
         result = get_installed_version(mock_module)
 
@@ -192,7 +199,10 @@ def test_get_installed_version_success(mock_module):
 
 def test_get_installed_version_not_installed(mock_module):
     """Test when Splunk is not installed."""
-    with patch("plugins.modules.splunk_universal_forwarder_linux.is_splunk_installed", return_value=False):
+    with patch(
+        "plugins.modules.splunk_universal_forwarder_linux.is_splunk_installed",
+        return_value=False,
+    ):
         result = get_installed_version(mock_module)
 
     assert result is None
@@ -201,7 +211,10 @@ def test_get_installed_version_not_installed(mock_module):
 
 def test_get_installed_version_rpm_fails(mock_module):
     """Test when rpm query fails."""
-    with patch("plugins.modules.splunk_universal_forwarder_linux.is_splunk_installed", return_value=True):
+    with patch(
+        "plugins.modules.splunk_universal_forwarder_linux.is_splunk_installed",
+        return_value=True,
+    ):
         mock_module.run_command.return_value = (1, "", "error")
         result = get_installed_version(mock_module)
 
@@ -210,7 +223,10 @@ def test_get_installed_version_rpm_fails(mock_module):
 
 def test_get_installed_version_empty_output(mock_module):
     """Test when rpm returns empty output."""
-    with patch("plugins.modules.splunk_universal_forwarder_linux.is_splunk_installed", return_value=True):
+    with patch(
+        "plugins.modules.splunk_universal_forwarder_linux.is_splunk_installed",
+        return_value=True,
+    ):
         mock_module.run_command.return_value = (0, "", "")
         result = get_installed_version(mock_module)
 
@@ -219,7 +235,10 @@ def test_get_installed_version_empty_output(mock_module):
 
 def test_get_installed_version_strips_whitespace(mock_module):
     """Test that version output is stripped of whitespace."""
-    with patch("plugins.modules.splunk_universal_forwarder_linux.is_splunk_installed", return_value=True):
+    with patch(
+        "plugins.modules.splunk_universal_forwarder_linux.is_splunk_installed",
+        return_value=True,
+    ):
         mock_module.run_command.return_value = (0, "  10.0.0  \n", "")
         result = get_installed_version(mock_module)
 
@@ -301,7 +320,12 @@ Configured but inactive forwards:
 """
     mock_module.run_command.return_value = (0, splunk_output, "")
 
-    result = get_existing_forward_servers(mock_module, "/opt/splunkforwarder", "admin", "password")
+    result = get_existing_forward_servers(
+        mock_module,
+        "/opt/splunkforwarder",
+        "admin",
+        "password",
+    )
 
     assert result == ["10.0.0.1:9997", "10.0.0.2:9997"]
 
@@ -310,7 +334,12 @@ def test_get_existing_forward_servers_check_mode(mock_module):
     """Test that check mode returns empty list without running command."""
     mock_module.check_mode = True
 
-    result = get_existing_forward_servers(mock_module, "/opt/splunkforwarder", "admin", "password")
+    result = get_existing_forward_servers(
+        mock_module,
+        "/opt/splunkforwarder",
+        "admin",
+        "password",
+    )
 
     assert result == []
     mock_module.run_command.assert_not_called()
@@ -321,7 +350,12 @@ def test_get_existing_forward_servers_command_fails(mock_module):
     mock_module.check_mode = False
     mock_module.run_command.return_value = (1, "", "error message")
 
-    result = get_existing_forward_servers(mock_module, "/opt/splunkforwarder", "admin", "password")
+    result = get_existing_forward_servers(
+        mock_module,
+        "/opt/splunkforwarder",
+        "admin",
+        "password",
+    )
 
     assert result == []
     mock_module.warn.assert_called_once()
@@ -338,7 +372,12 @@ Configured but inactive forwards:
 """
     mock_module.run_command.return_value = (0, splunk_output, "")
 
-    result = get_existing_forward_servers(mock_module, "/opt/splunkforwarder", "admin", "password")
+    result = get_existing_forward_servers(
+        mock_module,
+        "/opt/splunkforwarder",
+        "admin",
+        "password",
+    )
 
     assert result == []
 
@@ -353,7 +392,12 @@ Configured but inactive forwards:
 """
     mock_module.run_command.return_value = (0, splunk_output, "")
 
-    result = get_existing_forward_servers(mock_module, "/opt/splunkforwarder", "admin", "password")
+    result = get_existing_forward_servers(
+        mock_module,
+        "/opt/splunkforwarder",
+        "admin",
+        "password",
+    )
 
     assert result == ["10.0.0.1:9997", "10.0.0.2:9997"]
 
@@ -363,7 +407,12 @@ def test_get_existing_forward_servers_empty_output(mock_module):
     mock_module.check_mode = False
     mock_module.run_command.return_value = (0, "", "")
 
-    result = get_existing_forward_servers(mock_module, "/opt/splunkforwarder", "admin", "password")
+    result = get_existing_forward_servers(
+        mock_module,
+        "/opt/splunkforwarder",
+        "admin",
+        "password",
+    )
 
     assert result == []
 
@@ -416,7 +465,10 @@ def test_check_splunk_service_start_success(mock_module):
 
     with patch("plugins.modules.splunk_universal_forwarder_linux.time.sleep"):
         result = check_splunk_service(
-            mock_module, "/opt/splunkforwarder", "start", max_retries=1
+            mock_module,
+            "/opt/splunkforwarder",
+            "start",
+            max_retries=1,
         )
 
     assert result is True
@@ -431,7 +483,10 @@ def test_check_splunk_service_stop_success(mock_module):
 
     with patch("plugins.modules.splunk_universal_forwarder_linux.time.sleep"):
         result = check_splunk_service(
-            mock_module, "/opt/splunkforwarder", "stop", max_retries=1
+            mock_module,
+            "/opt/splunkforwarder",
+            "stop",
+            max_retries=1,
         )
 
     assert result is True
@@ -471,8 +526,11 @@ def test_check_splunk_service_start_retry_success(mock_module):
 
     with patch("plugins.modules.splunk_universal_forwarder_linux.time.sleep"):
         result = check_splunk_service(
-            mock_module, "/opt/splunkforwarder", "start",
-            max_retries=2, retry_delay=1
+            mock_module,
+            "/opt/splunkforwarder",
+            "start",
+            max_retries=2,
+            retry_delay=1,
         )
 
     assert result is True
@@ -488,8 +546,11 @@ def test_check_splunk_service_max_retries_exhausted(mock_module):
 
     with patch("plugins.modules.splunk_universal_forwarder_linux.time.sleep"):
         result = check_splunk_service(
-            mock_module, "/opt/splunkforwarder", "start",
-            max_retries=2, retry_delay=1
+            mock_module,
+            "/opt/splunkforwarder",
+            "start",
+            max_retries=2,
+            retry_delay=1,
         )
 
     assert result is False

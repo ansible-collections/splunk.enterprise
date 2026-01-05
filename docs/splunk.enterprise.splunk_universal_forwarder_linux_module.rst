@@ -17,7 +17,8 @@ Version added: 1.0.0
 
 Synopsis
 --------
-- This module manages Splunk Universal Forwarder installations on RHEL 8, 9, and 10 systems using RPM packages.
+- This module manages Splunk Universal Forwarder installations on RHEL 8, 9, and 10 systems with RPM package.
+- Support Universal Forwarder version 9 only. Version 10.0.0 and above is not supported.
 - Downloads the Splunk Universal Forwarder RPM and verifies its integrity using SHA512 checksums.
 - Supports idempotent installation and removal of the forwarder.
 - Automatically configures user credentials and starts the forwarder on first installation.
@@ -129,9 +130,9 @@ Parameters
                 <td>
                 </td>
                 <td>
-                        <div>Release id corresponding to the Splunk Universal Forwarder version (e.g., V(c486717c322b)).</div>
+                        <div>Release id corresponding to the Splunk Universal Forwarder version (e.g., V(2a9293b80994)).</div>
                         <div>The release id can be found on the Splunk download page for each version.</div>
-                        <div>Combined with O(version) to form the RPM filename (e.g., V(10.0.1-c486717c322b)).</div>
+                        <div>Combined with O(version) to form the RPM filename (e.g., V(9.4.7-2a9293b80994)).</div>
                         <div>Required when O(state=present).</div>
                 </td>
             </tr>
@@ -186,7 +187,8 @@ Parameters
                 <td>
                 </td>
                 <td>
-                        <div>Version of Splunk Universal Forwarder to install (e.g., V(10.0.1)).</div>
+                        <div>Version of Splunk Universal Forwarder to install (e.g., V(9.4.7)).</div>
+                        <div>Only major version 9 is supported. Version 10.0.0 and above is not supported.</div>
                         <div>Required when O(state=present).</div>
                 </td>
             </tr>
@@ -199,6 +201,7 @@ Notes
 
 .. note::
    - This module only works on RHEL 8, 9, and 10 systems.
+   - Only Splunk Universal Forwarder major version 9 is supported. Version 10.0.0 and above is not supported.
    - The RPM package will be downloaded to V(/opt) from the official Splunk download site.
    - Splunk Universal Forwarder will be installed to V(/opt/splunkforwarder).
    - Requires root privileges to install/remove packages and start services.
@@ -215,16 +218,16 @@ Examples
     - name: Install Splunk Universal Forwarder (x86_64)
       splunk.enterprise.splunk_universal_forwarder_linux:
         state: present
-        version: "10.0.1"
-        release_id: "c486717c322b"
+        version: "9.4.7"
+        release_id: "2a9293b80994"
         username: admin
         password: "changeme123"
 
     - name: Install Splunk Universal Forwarder on ARM architecture, with no forward-servers configured
       splunk.enterprise.splunk_universal_forwarder_linux:
         state: present
-        version: "10.0.1"
-        release_id: "c486717c322b"
+        version: "9.4.7"
+        release_id: "2a9293b80994"
         cpu: ARM
         username: admin
         password: "changeme123"
@@ -233,8 +236,8 @@ Examples
     - name: Install Splunk Universal Forwarder with forward-servers configuration
       splunk.enterprise.splunk_universal_forwarder_linux:
         state: present
-        version: "10.0.1"
-        release_id: "c486717c322b"
+        version: "9.4.7"
+        release_id: "2a9293b80994"
         username: admin
         password: "changeme123"
         forward_servers:
@@ -244,8 +247,8 @@ Examples
     - name: Install Splunk Universal Forwarder with deployment server
       splunk.enterprise.splunk_universal_forwarder_linux:
         state: present
-        version: "10.0.1"
-        release_id: "c486717c322b"
+        version: "9.4.7"
+        release_id: "2a9293b80994"
         username: admin
         password: "changeme123"
         deployment_server: "deployment-server.example.com:8089"
@@ -253,8 +256,8 @@ Examples
     - name: Remove deployment server configuration
       splunk.enterprise.splunk_universal_forwarder_linux:
         state: present
-        version: "10.0.1"
-        release_id: "c486717c322b"
+        version: "9.4.7"
+        release_id: "2a9293b80994"
         username: admin
         password: "changeme123"
         deployment_server: ""
@@ -266,8 +269,8 @@ Examples
     - name: Install Splunk Universal Forwarder (check mode)
       splunk.enterprise.splunk_universal_forwarder_linux:
         state: present
-        version: "10.0.1"
-        release_id: "c486717c322b"
+        version: "9.4.7"
+        release_id: "2a9293b80994"
         username: admin
         password: "changeme123"
       check_mode: true

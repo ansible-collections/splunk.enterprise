@@ -113,7 +113,7 @@ Parameters
                 </td>
                 <td>
                         <div>When <code>state=absent</code>, purge Splunk UF files/config directories and temp directory after uninstall.</div>
-                        <div>This will remove both the installation directory and the temp directory (default <code>C:\temp</code>) with all downloaded files.</div>
+                        <div>This will remove both the installation directory and the temp directory (default <code>C:\splunktemp</code>) with all downloaded files.</div>
                         <div>Be careful with this option, as it will remove all files and the temp folder even if it was present before the module run.</div>
                 </td>
             </tr>
@@ -254,7 +254,7 @@ Parameters
                     </div>
                 </td>
                 <td>
-                        <b>Default:</b><br/><div style="color: blue">"C:\\temp"</div>
+                        <b>Default:</b><br/><div style="color: blue">"C:\\splunktemp"</div>
                 </td>
                 <td>
                         <div>Directory on the Windows host to store the downloaded MSI and installation logs.</div>
@@ -309,7 +309,6 @@ Examples
           - 'domain.test.com:9997'
         deployment_server: '10.46.29.168:8089'
         service_account_type: local_system
-
     - name: Install Splunk Universal Forwarder with custom installation directory
       splunk.enterprise.win_splunk_universal_forwarder:
         version: '10.0.0'
@@ -320,7 +319,6 @@ Examples
         forward_servers:
           - '10.46.30.200:9997'
           - 'domain.test.com:9997'
-
     - name: Upgrade with custom installation directory (must specify same install_dir)
       splunk.enterprise.win_splunk_universal_forwarder:
         version: '10.0.2'
@@ -331,7 +329,6 @@ Examples
         forward_servers:
           - '10.46.30.200:9997'
           - 'domain.test.com:9997'
-
     - name: Update configuration with custom installation directory
       splunk.enterprise.win_splunk_universal_forwarder:
         version: '10.0.2'
@@ -342,7 +339,6 @@ Examples
         forward_servers:
           - '10.46.30.200:9997'
           - 'domain.test.com:9997'
-
     - name: Install Splunk Universal Forwarder with Virtual Service Account (with retry)
       splunk.enterprise.win_splunk_universal_forwarder:
         version: '10.0.2'
@@ -357,7 +353,6 @@ Examples
       retries: 5
       delay: 5
       until: splunk_install_result is succeeded
-
     - name: Install Splunk Universal Forwarder with Domain User account
       splunk.enterprise.win_splunk_universal_forwarder:
         version: '10.0.2'
@@ -370,7 +365,6 @@ Examples
         service_account_type: domain_user
         service_logon_username: 'DOMAIN\splunksvc'
         service_logon_password: 'SecureP@ss123'
-
     - name: Remove all forward servers
       splunk.enterprise.win_splunk_universal_forwarder:
         version: '10.0.2'
@@ -378,7 +372,6 @@ Examples
         splunk_username: 'SplunkAdmin'
         splunk_password: 'Ch@ng3d!'
         forward_servers: []
-
     - name: Clear deployment server configuration
       splunk.enterprise.win_splunk_universal_forwarder:
         version: '10.0.2'
@@ -386,11 +379,9 @@ Examples
         splunk_username: 'SplunkAdmin'
         splunk_password: 'Ch@ng3d!'
         deployment_server: 'NONE'
-
     - name: Uninstall Splunk Universal Forwarder (preserve config and temp files)
       splunk.enterprise.win_splunk_universal_forwarder:
         state: absent
-
     - name: Uninstall Splunk Universal Forwarder (remove all files including temp directory)
       splunk.enterprise.win_splunk_universal_forwarder:
         state: absent
