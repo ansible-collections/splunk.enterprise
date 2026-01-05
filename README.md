@@ -2,7 +2,8 @@
 
 <!-- Add CI and code coverage badges here. Samples included below. -->
 
-[![CI](https://github.com/ansible-collections/splunk.enterprise/workflows/CI/badge.svg?event=push)](https://github.com/ansible-collections/splunk.enterprise/actions) [![Codecov](https://img.shields.io/codecov/c/github/ansible-collections/splunk.enterprise)](https://codecov.io/gh/ansible-collections/splunk.enterprise)
+[![Collection Tests - Sanity | SonarCloud | Ansible-Lint | Unit](https://github.com/ansible-collections/splunk.enterprise/actions/workflows/tests.yml/badge.svg?event=schedule)](https://github.com/ansible-collections/splunk.enterprise/actions/workflows/tests.yml)
+[![Integration Tests](https://github.com/ansible-collections/splunk.enterprise/actions/workflows/integration.yml/badge.svg)](https://github.com/ansible-collections/splunk.enterprise/actions/workflows/integration.yml)
 
 <!-- Describe the collection and why a user would want to use it. What does the collection do? -->
 
