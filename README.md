@@ -4,7 +4,7 @@
 
 [![Collection Tests - Sanity | SonarCloud | Ansible-Lint | Unit](https://github.com/ansible-collections/splunk.enterprise/actions/workflows/tests.yml/badge.svg?event=schedule)](https://github.com/ansible-collections/splunk.enterprise/actions/workflows/tests.yml)
 [![Integration Tests](https://github.com/ansible-collections/splunk.enterprise/actions/workflows/integration.yml/badge.svg)](https://github.com/ansible-collections/splunk.enterprise/actions/workflows/integration.yml)
-[![SonarCloud Coverage](https://sonarcloud.io/api/project_badges/measure?project=splunk.enterprise&metric=coverage)](https://sonarcloud.io/component_measures/metric/coverage/list?id=splunk.enterprise)
+[![SonarCloud Coverage](https://sonarcloud.io/api/project_badges/measure?project=ansible-collections_splunk.es&metric=coverage)](https://sonarcloud.io/project/overview?id=ansible-collections_splunk.enterprise)
 
 
 <!-- Describe the collection and why a user would want to use it. What does the collection do? -->
