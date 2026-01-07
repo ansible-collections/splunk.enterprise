@@ -1,6 +1,6 @@
 ---
 - name: Run Splunk Universal Forwarder Linux integration tests
-  block:
-    - name: Include integration tests
-      ansible.builtin.include_tasks: tests.yml
   become: true
+  block:
+    - name: Run integration tests
+      ansible.builtin.include_tasks: tests.yml
