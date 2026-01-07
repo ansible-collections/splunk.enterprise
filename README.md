@@ -3,7 +3,7 @@
 <!-- Add CI and code coverage badges here. Samples included below. -->
 
 [![Collection Tests - Sanity | SonarCloud | Ansible-Lint | Unit](https://github.com/ansible-collections/splunk.enterprise/actions/workflows/tests.yml/badge.svg?event=schedule)](https://github.com/ansible-collections/splunk.enterprise/actions/workflows/tests.yml)
-[![Integration Tests](https://github.com/ansible-collections/splunk.enterprise/actions/workflows/integration.yml/badge.svg)](https://github.com/ansible-collections/splunk.enterprise/actions/workflows/integration.yml)
+[![Integration Tests](https://github.com/ansible-collections/splunk.enterprise/actions/workflows/integration.yml/badge.svg?branch=main&event=schedule)](https://github.com/ansible-collections/splunk.enterprise/actions/workflows/integration.yml)
 [![SonarCloud Coverage](https://sonarcloud.io/api/project_badges/measure?project=ansible-collections_splunk.es&metric=coverage)](https://sonarcloud.io/project/overview?id=ansible-collections_splunk.enterprise)
 
 
