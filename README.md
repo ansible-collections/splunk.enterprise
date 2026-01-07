@@ -4,6 +4,8 @@
 
 [![Collection Tests - Sanity | SonarCloud | Ansible-Lint | Unit](https://github.com/ansible-collections/splunk.enterprise/actions/workflows/tests.yml/badge.svg?event=schedule)](https://github.com/ansible-collections/splunk.enterprise/actions/workflows/tests.yml)
 [![Integration Tests](https://github.com/ansible-collections/splunk.enterprise/actions/workflows/integration.yml/badge.svg)](https://github.com/ansible-collections/splunk.enterprise/actions/workflows/integration.yml)
+[![SonarCloud Coverage](https://sonarcloud.io/api/project_badges/measure?project=splunk.enterprise&metric=coverage)](https://sonarcloud.io/component_measures/metric/coverage/list?id=splunk.enterprise)
+
 
 <!-- Describe the collection and why a user would want to use it. What does the collection do? -->
 
@@ -65,8 +67,6 @@ The process of decision making in this collection is based on discussing and fin
 
 Every voice is important. If you have something on your mind, create an issue or dedicated discussion and let's discuss it!
 
-## Tested with Ansible
-
 <!--start requires_ansible-->
 ## Ansible version compatibility
 
@@ -121,6 +121,56 @@ ansible-galaxy collection install splunk.enterprise:==0.1.0
 ```
 
 See [using Ansible collections](https://docs.ansible.com/projects/ansible/devel/user_guide/collections_using.html) for more details.
+
+### Using modules from the Splunk Enterprise collection in your playbooks
+
+You can call modules by their Fully Qualified Collection Namespace (FQCN), such as `splunk.enterprise.splunk_universal_forwarder_linux`.
+The following example task installs splunk universal forwarder on a RHEL machine that was specified in the inventory file, using the FQCN:
+
+```yaml
+---
+- name: Install Splunk Universal Forwarder (x86_64)
+  splunk.enterprise.splunk_universal_forwarder_linux:
+    state: present
+    version: "9.4.7"
+    release_id: "2a9293b80994"
+    username: admin
+    password: "changeme123"
+```
+
+for Windows we would have the following inventory format:
+```ini
+[windows]
+windows_server_22 ansible_host=<insert_server_22_ip>
+windows_server_19 ansible_host=<insert_server_19_ip>
+windows_server_25 ansible_host=<insert_server_25_ip>
+
+[windows:vars]
+ansible_user=Admin
+ansible_password=<insert password>
+ansible_connection=winrm
+ansible_winrm_transport=basic
+ansible_winrm_server_cert_validation=ignore
+ansible_port=5985
+```
+
+for rhel an example of a suggested inventory:
+```ini
+[rhel8]
+<insert_server_rhel8_ip>
+[rhel9]
+<insert_server_rhel9_ip>
+[rhel10]
+<insert_server_rhel10_ip>
+[rhel]
+<insert_server_rhel8_ip>
+<insert_server_rhel9_ip>
+<insert_server_rhel10_ip>
+```
+
+### See Also:
+
+- [Ansible Using collections](https://docs.ansible.com/ansible/latest/user_guide/collections_using.html) for more details.
 
 ## Release notes
 
