@@ -44,7 +44,7 @@ jobs:
         node_id: [rhel8, rhel9, rhel10]
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           path: ansible_collections/splunk/enterprise
           ref: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
