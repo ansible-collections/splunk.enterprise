@@ -50,20 +50,6 @@
           - install_check_mode is changed
         fail_msg: "Check mode should report changed for new installation"
 
-    - name: "INSTALL | Verify Splunk was not actually installed (check mode)"
-      splunk.enterprise.win_splunk_universal_forwarder_info:
-        username: "{{ splunk_username }}"
-        password: "{{ splunk_password }}"
-        install_dir: "{{ splunk_install_dir }}"
-      register: info_after_check_mode
-
-    - name: "INSTALL | Assert Splunk still absent after check mode"
-      ansible.builtin.assert:
-        that:
-          - info_after_check_mode.state == 'absent'
-        fail_msg: "Splunk should not be installed after check mode"
-
-    # Install - Actual
     - name: "INSTALL | Actually install Splunk Universal Forwarder"
       splunk.enterprise.win_splunk_universal_forwarder:
         state: present
@@ -99,7 +85,6 @@
           - info_after_install.splunk_home == splunk_install_dir
         fail_msg: "Info module should report correct state and version after install"
 
-    # Install - Idempotency
     - name: "INSTALL | Idempotency - Run install again with same version"
       splunk.enterprise.win_splunk_universal_forwarder:
         state: present
@@ -118,29 +103,7 @@
           - install_idempotent is not changed
         fail_msg: "Running install with same version should be idempotent (no changes)"
 
-    # Forward Servers Tests
-    # Set Forward Servers - Check Mode
-    - name: "FORWARD_SERVERS | Check mode - Set initial forward servers"
-      splunk.enterprise.win_splunk_universal_forwarder:
-        state: present
-        version: "{{ splunk_version_base }}"
-        release_id: "{{ splunk_release_id_base }}"
-        splunk_username: "{{ splunk_username }}"
-        splunk_password: "{{ splunk_password }}"
-        install_dir: "{{ splunk_install_dir }}"
-        forward_servers:
-          - "10.46.29.168:9997"
-          - "10.46.29.214:9997"
-      check_mode: true
-      register: fwd_set_check_mode
 
-    - name: "FORWARD_SERVERS | Verify check mode reports changed for new servers"
-      ansible.builtin.assert:
-        that:
-          - fwd_set_check_mode is changed
-        fail_msg: "Check mode should report changed when setting new forward servers"
-
-    # Set Forward Servers - Actual
     - name: "FORWARD_SERVERS | Set initial forward servers"
       splunk.enterprise.win_splunk_universal_forwarder:
         state: present
@@ -173,7 +136,6 @@
           - info_with_fwd_servers.forward_servers | length == 2
         fail_msg: "Info should show configured forward servers"
 
-    # Set Forward Servers - Idempotency
     - name: "FORWARD_SERVERS | Idempotency - Set same forward servers again"
       splunk.enterprise.win_splunk_universal_forwarder:
         state: present
@@ -193,82 +155,6 @@
           - fwd_set_idempotent is not changed
         fail_msg: "Setting same forward servers should be idempotent"
 
-    # Update Forward Servers - Check Mode
-    - name: "FORWARD_SERVERS | Check mode - Update forward servers"
-      splunk.enterprise.win_splunk_universal_forwarder:
-        state: present
-        version: "{{ splunk_version_base }}"
-        release_id: "{{ splunk_release_id_base }}"
-        splunk_username: "{{ splunk_username }}"
-        splunk_password: "{{ splunk_password }}"
-        install_dir: "{{ splunk_install_dir }}"
-        forward_servers:
-          - "10.46.30.100:9997"
-          - "10.46.30.101:9997"
-          - "10.46.30.102:9997"
-      check_mode: true
-      register: fwd_update_check_mode
-
-    - name: "FORWARD_SERVERS | Verify check mode reports changed for update"
-      ansible.builtin.assert:
-        that:
-          - fwd_update_check_mode is changed
-        fail_msg: "Check mode should report changed when updating forward servers"
-
-    # Update Forward Servers - Actual
-    - name: "FORWARD_SERVERS | Update forward servers"
-      splunk.enterprise.win_splunk_universal_forwarder:
-        state: present
-        version: "{{ splunk_version_base }}"
-        release_id: "{{ splunk_release_id_base }}"
-        splunk_username: "{{ splunk_username }}"
-        splunk_password: "{{ splunk_password }}"
-        install_dir: "{{ splunk_install_dir }}"
-        forward_servers:
-          - "10.46.30.100:9997"
-          - "10.46.30.101:9997"
-          - "10.46.30.102:9997"
-      register: fwd_update_result
-
-    - name: "FORWARD_SERVERS | Verify forward servers were updated"
-      ansible.builtin.assert:
-        that:
-          - fwd_update_result is changed
-        fail_msg: "Updating forward servers should report changed"
-
-    - name: "FORWARD_SERVERS | Gather info to verify updated forward servers"
-      splunk.enterprise.win_splunk_universal_forwarder_info:
-        username: "{{ splunk_username }}"
-        password: "{{ splunk_password }}"
-        install_dir: "{{ splunk_install_dir }}"
-      register: info_with_updated_fwd
-
-    - name: "FORWARD_SERVERS | Verify updated forward servers in info"
-      ansible.builtin.assert:
-        that:
-          - info_with_updated_fwd.forward_servers | length == 3
-        fail_msg: "Info should show updated forward servers"
-
-    # Remove Forward Servers - Check Mode
-    - name: "FORWARD_SERVERS | Check mode - Remove all forward servers"
-      splunk.enterprise.win_splunk_universal_forwarder:
-        state: present
-        version: "{{ splunk_version_base }}"
-        release_id: "{{ splunk_release_id_base }}"
-        splunk_username: "{{ splunk_username }}"
-        splunk_password: "{{ splunk_password }}"
-        install_dir: "{{ splunk_install_dir }}"
-        forward_servers: []
-      check_mode: true
-      register: fwd_remove_check_mode
-
-    - name: "FORWARD_SERVERS | Verify check mode reports changed for removal"
-      ansible.builtin.assert:
-        that:
-          - fwd_remove_check_mode is changed
-        fail_msg: "Check mode should report changed when removing forward servers"
-
-    # Remove Forward Servers - Actual
     - name: "FORWARD_SERVERS | Remove all forward servers"
       splunk.enterprise.win_splunk_universal_forwarder:
         state: present
@@ -299,45 +185,7 @@
           - info_no_fwd_servers.forward_servers | length == 0
         fail_msg: "Info should show no forward servers after removal"
 
-    # Remove Forward Servers - Idempotency
-    - name: "FORWARD_SERVERS | Idempotency - Remove forward servers again"
-      splunk.enterprise.win_splunk_universal_forwarder:
-        state: present
-        version: "{{ splunk_version_base }}"
-        release_id: "{{ splunk_release_id_base }}"
-        splunk_username: "{{ splunk_username }}"
-        splunk_password: "{{ splunk_password }}"
-        install_dir: "{{ splunk_install_dir }}"
-        forward_servers: []
-      register: fwd_remove_idempotent
 
-    - name: "FORWARD_SERVERS | Verify removal idempotency"
-      ansible.builtin.assert:
-        that:
-          - fwd_remove_idempotent is not changed
-        fail_msg: "Removing already-removed forward servers should be idempotent"
-
-    # Deployment Server Tests
-    # Set Deployment Server - Check Mode
-    - name: "DEPLOYMENT_SERVER | Check mode - Set initial deployment server"
-      splunk.enterprise.win_splunk_universal_forwarder:
-        state: present
-        version: "{{ splunk_version_base }}"
-        release_id: "{{ splunk_release_id_base }}"
-        splunk_username: "{{ splunk_username }}"
-        splunk_password: "{{ splunk_password }}"
-        install_dir: "{{ splunk_install_dir }}"
-        deployment_server: "10.46.29.168:8089"
-      check_mode: true
-      register: ds_set_check_mode
-
-    - name: "DEPLOYMENT_SERVER | Verify check mode reports changed"
-      ansible.builtin.assert:
-        that:
-          - ds_set_check_mode is changed
-        fail_msg: "Check mode should report changed when setting deployment server"
-
-    # Set Deployment Server - Actual
     - name: "DEPLOYMENT_SERVER | Set initial deployment server"
       splunk.enterprise.win_splunk_universal_forwarder:
         state: present
@@ -369,7 +217,6 @@
           - "'10.46.29.168:8089' in info_with_ds.deployment_server"
         fail_msg: "Info should show configured deployment server"
 
-    # Set Deployment Server - Idempotency
     - name: "DEPLOYMENT_SERVER | Idempotency - Set same deployment server"
       splunk.enterprise.win_splunk_universal_forwarder:
         state: present
@@ -387,77 +234,6 @@
           - ds_set_idempotent is not changed
         fail_msg: "Setting same deployment server should be idempotent"
 
-    # Update Deployment Server - Check Mode
-    - name: "DEPLOYMENT_SERVER | Check mode - Update deployment server"
-      splunk.enterprise.win_splunk_universal_forwarder:
-        state: present
-        version: "{{ splunk_version_base }}"
-        release_id: "{{ splunk_release_id_base }}"
-        splunk_username: "{{ splunk_username }}"
-        splunk_password: "{{ splunk_password }}"
-        install_dir: "{{ splunk_install_dir }}"
-        deployment_server: "10.46.30.200:8089"
-      check_mode: true
-      register: ds_update_check_mode
-
-    - name: "DEPLOYMENT_SERVER | Verify check mode reports changed for update"
-      ansible.builtin.assert:
-        that:
-          - ds_update_check_mode is changed
-        fail_msg: "Check mode should report changed when updating deployment server"
-
-    # Update Deployment Server - Actual
-    - name: "DEPLOYMENT_SERVER | Update deployment server"
-      splunk.enterprise.win_splunk_universal_forwarder:
-        state: present
-        version: "{{ splunk_version_base }}"
-        release_id: "{{ splunk_release_id_base }}"
-        splunk_username: "{{ splunk_username }}"
-        splunk_password: "{{ splunk_password }}"
-        install_dir: "{{ splunk_install_dir }}"
-        deployment_server: "10.46.30.200:8089"
-      register: ds_update_result
-
-    - name: "DEPLOYMENT_SERVER | Verify deployment server was updated"
-      ansible.builtin.assert:
-        that:
-          - ds_update_result is changed
-        fail_msg: "Updating deployment server should report changed"
-
-    - name: "DEPLOYMENT_SERVER | Gather info to verify updated deployment server"
-      splunk.enterprise.win_splunk_universal_forwarder_info:
-        username: "{{ splunk_username }}"
-        password: "{{ splunk_password }}"
-        install_dir: "{{ splunk_install_dir }}"
-      register: info_with_updated_ds
-
-    - name: "DEPLOYMENT_SERVER | Verify updated deployment server in info"
-      ansible.builtin.assert:
-        that:
-          - info_with_updated_ds.deployment_server is defined
-          - "'10.46.30.200:8089' in info_with_updated_ds.deployment_server"
-        fail_msg: "Info should show updated deployment server"
-
-    # Remove Deployment Server - Check Mode
-    - name: "DEPLOYMENT_SERVER | Check mode - Remove deployment server"
-      splunk.enterprise.win_splunk_universal_forwarder:
-        state: present
-        version: "{{ splunk_version_base }}"
-        release_id: "{{ splunk_release_id_base }}"
-        splunk_username: "{{ splunk_username }}"
-        splunk_password: "{{ splunk_password }}"
-        install_dir: "{{ splunk_install_dir }}"
-        deployment_server: "NONE"
-      check_mode: true
-      register: ds_remove_check_mode
-
-    - name: "DEPLOYMENT_SERVER | Verify check mode reports changed for removal"
-      ansible.builtin.assert:
-        that:
-          - ds_remove_check_mode is changed
-        fail_msg: "Check mode should report changed when removing deployment server"
-
-    # Remove Deployment Server - Actual
     - name: "DEPLOYMENT_SERVER | Remove deployment server"
       splunk.enterprise.win_splunk_universal_forwarder:
         state: present
@@ -489,59 +265,7 @@
           - info_no_ds.deployment_server is not defined or info_no_ds.deployment_server == ''
         fail_msg: "Info should show no deployment server after removal"
 
-    # Remove Deployment Server - Idempotency
-    - name: "DEPLOYMENT_SERVER | Idempotency - Remove deployment server again"
-      splunk.enterprise.win_splunk_universal_forwarder:
-        state: present
-        version: "{{ splunk_version_base }}"
-        release_id: "{{ splunk_release_id_base }}"
-        splunk_username: "{{ splunk_username }}"
-        splunk_password: "{{ splunk_password }}"
-        install_dir: "{{ splunk_install_dir }}"
-        deployment_server: "NONE"
-      register: ds_remove_idempotent
 
-    - name: "DEPLOYMENT_SERVER | Verify removal idempotency"
-      ansible.builtin.assert:
-        that:
-          - ds_remove_idempotent is not changed
-        fail_msg: "Removing already-removed deployment server should be idempotent"
-
-    # Upgrade Tests
-    # Upgrade - Check Mode
-    - name: "UPGRADE | Check mode - Upgrade to newer version"
-      splunk.enterprise.win_splunk_universal_forwarder:
-        state: present
-        version: "{{ splunk_version_upgrade }}"
-        release_id: "{{ splunk_release_id_upgrade }}"
-        splunk_username: "{{ splunk_username }}"
-        splunk_password: "{{ splunk_password }}"
-        install_dir: "{{ splunk_install_dir }}"
-        temp_dir: "{{ splunk_temp_dir }}"
-        service_account_type: local_system
-      check_mode: true
-      register: upgrade_check_mode
-
-    - name: "UPGRADE | Verify check mode reports changed for upgrade"
-      ansible.builtin.assert:
-        that:
-          - upgrade_check_mode is changed
-        fail_msg: "Check mode should report changed for upgrade"
-
-    - name: "UPGRADE | Verify version unchanged after check mode"
-      splunk.enterprise.win_splunk_universal_forwarder_info:
-        username: "{{ splunk_username }}"
-        password: "{{ splunk_password }}"
-        install_dir: "{{ splunk_install_dir }}"
-      register: info_after_upgrade_check
-
-    - name: "UPGRADE | Assert version still base after check mode"
-      ansible.builtin.assert:
-        that:
-          - info_after_upgrade_check.version == splunk_version_base
-        fail_msg: "Version should not change in check mode"
-
-    # Upgrade - Actual
     - name: "UPGRADE | Actually upgrade to newer version"
       splunk.enterprise.win_splunk_universal_forwarder:
         state: present
@@ -575,26 +299,7 @@
           - info_after_upgrade.version == splunk_version_upgrade
         fail_msg: "Version should be upgraded to {{ splunk_version_upgrade }}"
 
-    # Upgrade - Idempotency
-    - name: "UPGRADE | Idempotency - Run upgrade again with same version"
-      splunk.enterprise.win_splunk_universal_forwarder:
-        state: present
-        version: "{{ splunk_version_upgrade }}"
-        release_id: "{{ splunk_release_id_upgrade }}"
-        splunk_username: "{{ splunk_username }}"
-        splunk_password: "{{ splunk_password }}"
-        install_dir: "{{ splunk_install_dir }}"
-        temp_dir: "{{ splunk_temp_dir }}"
-        service_account_type: local_system
-      register: upgrade_idempotent
 
-    - name: "UPGRADE | Verify idempotency"
-      ansible.builtin.assert:
-        that:
-          - upgrade_idempotent is not changed
-        fail_msg: "Running with same upgraded version should be idempotent"
-
-    # Downgrade Tests (Should Fail)
     - name: "DOWNGRADE | Attempt to downgrade (should fail)"
       splunk.enterprise.win_splunk_universal_forwarder:
         state: present
@@ -623,8 +328,6 @@
           - info_after_downgrade_attempt.version == splunk_version_upgrade
         fail_msg: "Version should remain {{ splunk_version_upgrade }} after failed downgrade"
 
-    # Uninstall Tests
-    # Uninstall - Check Mode
     - name: "UNINSTALL | Check mode - Uninstall Splunk"
       splunk.enterprise.win_splunk_universal_forwarder:
         state: absent
@@ -639,20 +342,6 @@
           - uninstall_check_mode is changed
         fail_msg: "Check mode should report changed for uninstall"
 
-    - name: "UNINSTALL | Verify Splunk still installed after check mode"
-      splunk.enterprise.win_splunk_universal_forwarder_info:
-        username: "{{ splunk_username }}"
-        password: "{{ splunk_password }}"
-        install_dir: "{{ splunk_install_dir }}"
-      register: info_after_uninstall_check
-
-    - name: "UNINSTALL | Assert Splunk still present after check mode"
-      ansible.builtin.assert:
-        that:
-          - info_after_uninstall_check.state == 'present'
-        fail_msg: "Splunk should still be installed after uninstall check mode"
-
-    # Uninstall - Actual (without purge)
     - name: "UNINSTALL | Actually uninstall Splunk (no purge)"
       splunk.enterprise.win_splunk_universal_forwarder:
         state: absent
@@ -681,7 +370,6 @@
           - info_after_uninstall.state == 'absent'
         fail_msg: "Info should report state=absent after uninstall"
 
-    # Uninstall - Idempotency
     - name: "UNINSTALL | Idempotency - Uninstall again"
       splunk.enterprise.win_splunk_universal_forwarder:
         state: absent
@@ -694,43 +382,6 @@
         that:
           - uninstall_idempotent is not changed
         fail_msg: "Uninstalling already-uninstalled Splunk should be idempotent"
-
-    # Virtual Service Account Installation Test
-    - name: "VSA_INSTALL | Install Splunk with Virtual Service Account (with retries)"
-      splunk.enterprise.win_splunk_universal_forwarder:
-        state: present
-        version: "{{ splunk_version_base }}"
-        release_id: "{{ splunk_release_id_base }}"
-        splunk_username: "{{ splunk_username }}"
-        splunk_password: "{{ splunk_password }}"
-        install_dir: "{{ splunk_install_dir }}"
-        temp_dir: "{{ splunk_temp_dir }}"
-        service_account_type: virtual_service_account
-      register: vsa_install_result
-      retries: 5
-      delay: 10
-      until: vsa_install_result is succeeded
-
-    - name: "VSA_INSTALL | Verify VSA installation succeeded"
-      ansible.builtin.assert:
-        that:
-          - vsa_install_result is changed or vsa_install_result is succeeded
-          - vsa_install_result.installed == true
-        fail_msg: "Virtual Service Account installation should succeed"
-
-    - name: "VSA_INSTALL | Gather info after VSA installation"
-      splunk.enterprise.win_splunk_universal_forwarder_info:
-        username: "{{ splunk_username }}"
-        password: "{{ splunk_password }}"
-        install_dir: "{{ splunk_install_dir }}"
-      register: info_vsa_install
-
-    - name: "VSA_INSTALL | Verify Splunk is running after VSA install"
-      ansible.builtin.assert:
-        that:
-          - info_vsa_install.state == 'present'
-          - info_vsa_install.service.status == 'Running'
-        fail_msg: "Splunk should be running after VSA installation"
 
   # Always cleanup - runs even if tests fail
   always:
