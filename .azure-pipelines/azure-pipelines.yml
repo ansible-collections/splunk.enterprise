@@ -48,7 +48,7 @@ stages:
               versionSpec: "3.10"
           - bash: python -m pip install ansible-core
             displayName: Install Ansible
-          - bash: mkdir collections && ansible-galaxy collection install -r tests/requirements.yml -p collections
+          - bash: mkdir -p collections/ansible_collections && ansible-galaxy collection install -r tests/requirements.yml -p collections
             displayName: Install collection requirements
           - task: PublishPipelineArtifact@1
             inputs:
