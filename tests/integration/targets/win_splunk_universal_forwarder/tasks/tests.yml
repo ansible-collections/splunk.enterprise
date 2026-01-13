@@ -103,7 +103,6 @@
           - install_idempotent is not changed
         fail_msg: "Running install with same version should be idempotent (no changes)"
 
-
     - name: "FORWARD_SERVERS | Set initial forward servers"
       splunk.enterprise.win_splunk_universal_forwarder:
         state: present
@@ -185,7 +184,6 @@
           - info_no_fwd_servers.forward_servers | length == 0
         fail_msg: "Info should show no forward servers after removal"
 
-
     - name: "DEPLOYMENT_SERVER | Set initial deployment server"
       splunk.enterprise.win_splunk_universal_forwarder:
         state: present
@@ -265,7 +263,6 @@
           - info_no_ds.deployment_server is not defined or info_no_ds.deployment_server == ''
         fail_msg: "Info should show no deployment server after removal"
 
-
     - name: "UPGRADE | Actually upgrade to newer version"
       splunk.enterprise.win_splunk_universal_forwarder:
         state: present
@@ -298,7 +295,6 @@
           - info_after_upgrade.state == 'present'
           - info_after_upgrade.version == splunk_version_upgrade
         fail_msg: "Version should be upgraded to {{ splunk_version_upgrade }}"
-
 
     - name: "DOWNGRADE | Attempt to downgrade (should fail)"
       splunk.enterprise.win_splunk_universal_forwarder:
