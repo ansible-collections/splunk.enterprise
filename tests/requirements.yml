@@ -1,2 +1,2 @@
 collections:
-  - ansible.windows  # Needed for ansible-test to bootstrap Windows
+  - ansible.windows # Needed for ansible-test to bootstrap Windows
