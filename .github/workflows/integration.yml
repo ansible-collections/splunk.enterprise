@@ -21,7 +21,15 @@ on:
     - cron: "0 0 * * *"
 
 jobs:
+  check-actor:
+    name: Cancel pre-commit CI integration tests
+    if: github.actor != 'pre-commit-ci[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Actor ${{ github.actor }} is allowed to run integration tests"
   safe-to-test:
+    needs:
+      - check-actor
     if: >-
       github.event_name == 'pull_request_target' &&
       (github.event.label.name == 'safe to test' ||
@@ -34,10 +42,11 @@ jobs:
     environment:
       name: ${{ github.event_name == 'schedule' && 'eco-splunk-daily' || 'eco-splunk-protected' }}
     needs:
+      - check-actor
       - safe-to-test
     if: >-
       always() &&
-      github.actor != 'pre-commit-ci[bot]' &&
+      needs.check-actor.result == 'success' &&
       (needs.safe-to-test.result == 'success' || needs.safe-to-test.result == 'skipped')
     strategy:
       fail-fast: false
