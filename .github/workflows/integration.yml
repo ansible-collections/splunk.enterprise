@@ -22,7 +22,7 @@ on:
 
 jobs:
   check-actor:
-    name: Cancel pre-commit CI integration tests
+    name: Check Actor
     if: github.actor != 'pre-commit-ci[bot]'
     runs-on: ubuntu-latest
     steps:
