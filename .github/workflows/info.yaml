@@ -21,7 +21,7 @@ jobs:
     if: github.actor != 'pre-commit-ci[bot]'
     runs-on: ubuntu-latest
     steps:
-      - run: echo "Actor ${{ github.actor }} is allowed to run workflow"
+      - run: echo "Actor ${{ github.actor }} is allowed to run ci workflow"
   test-integ:
     name: Test Integ
     runs-on: ubuntu-latest
