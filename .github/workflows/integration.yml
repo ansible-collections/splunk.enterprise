@@ -31,6 +31,8 @@ jobs:
     needs:
       - check-actor
     if: >-
+      always() &&
+      needs.check-actor.result == 'success' &&
       github.event_name == 'pull_request_target' &&
       (github.event.label.name == 'safe to test' ||
       github.event.action != 'labeled')
