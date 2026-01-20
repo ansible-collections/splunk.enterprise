@@ -37,6 +37,7 @@ jobs:
       - safe-to-test
     if: >-
       always() &&
+      github.actor != 'pre-commit-ci[bot]' &&
       (needs.safe-to-test.result == 'success' || needs.safe-to-test.result == 'skipped')
     strategy:
       fail-fast: false
