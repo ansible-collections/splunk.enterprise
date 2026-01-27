@@ -1,4 +1,0 @@
----
-minor_changes:
-  - win_splunk_universal_forwarder - new module to install and bootstrap Splunk Universal Forwarder on Windows.
-  - win_splunk_universal_forwarder_info - new module to gather information about Splunk Universal Forwarder on Windows.

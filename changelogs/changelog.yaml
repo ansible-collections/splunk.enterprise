@@ -1,3 +1,42 @@
 ---
 ancestor: null
-releases: {}
+releases:
+  1.0.0:
+    changes:
+      bugfixes:
+        - splunk_universal_forwarder_linux - handle exit code 8 from boot-start command
+          as success to enable service.
+        - splunk_universal_forwarder_linux - removed version 9 only restriction to
+          support newer versions.
+        - splunk_universal_forwarder_linux - use systemctl for managing SplunkForwarder
+          service instead of splunk binary commands.
+      minor_changes:
+        - splunk_universal_forwarder_linux - new module to install and bootstrap Splunk
+          Universal Forwarder on Linux.
+        - splunk_universal_forwarder_linux_info - new module to gather information
+          about Splunk Universal Forwarder on Linux.
+        - win_splunk_universal_forwarder - new module to install and bootstrap Splunk
+          Universal Forwarder on Windows.
+        - win_splunk_universal_forwarder_info - new module to gather information about
+          Splunk Universal Forwarder on Windows.
+      release_summary: Release summary for 1.0.0
+    fragments:
+      - add-lin-splunk-uf-modules.yaml
+      - add-win-splunk-uf-modules.yaml
+      - release-summary.yaml
+      - uf10-rhel10-support.yaml
+    modules:
+      - description: Manage Splunk Universal Forwarder installations on RHEL systems.
+        name: splunk_universal_forwarder_linux
+        namespace: ''
+      - description: Gather information about Splunk Universal Forwarder installations
+          on RHEL systems.
+        name: splunk_universal_forwarder_linux_info
+        namespace: ''
+      - description: Install and bootstrap Splunk Universal Forwarder on Windows.
+        name: win_splunk_universal_forwarder
+        namespace: ''
+      - description: Gather information about Splunk Universal Forwarder on Windows.
+        name: win_splunk_universal_forwarder_info
+        namespace: ''
+    release_date: '2026-01-27'

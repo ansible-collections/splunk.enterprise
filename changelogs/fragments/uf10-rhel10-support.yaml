@@ -1,5 +1,0 @@
----
-bugfixes:
-  - splunk_universal_forwarder_linux - handle exit code 8 from boot-start command as success to enable service.
-  - splunk_universal_forwarder_linux - use systemctl for managing SplunkForwarder service instead of splunk binary commands.
-  - splunk_universal_forwarder_linux - removed version 9 only restriction to support newer versions.
