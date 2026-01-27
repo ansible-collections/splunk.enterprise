@@ -28,15 +28,16 @@ releases:
     modules:
       - description: Manage Splunk Universal Forwarder installations on RHEL systems.
         name: splunk_universal_forwarder_linux
-        namespace: ''
-      - description: Gather information about Splunk Universal Forwarder installations
+        namespace: ""
+      - description:
+          Gather information about Splunk Universal Forwarder installations
           on RHEL systems.
         name: splunk_universal_forwarder_linux_info
-        namespace: ''
+        namespace: ""
       - description: Install and bootstrap Splunk Universal Forwarder on Windows.
         name: win_splunk_universal_forwarder
-        namespace: ''
+        namespace: ""
       - description: Gather information about Splunk Universal Forwarder on Windows.
         name: win_splunk_universal_forwarder_info
-        namespace: ''
-    release_date: '2026-01-27'
+        namespace: ""
+    release_date: "2026-01-27"
