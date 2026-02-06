@@ -1,0 +1,35 @@
+---
+name: "Workflow Info"
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  print-actor:
+    name: Print Actor Info
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print actor name
+        run: |
+          echo "Actor: ${{ github.actor }}"
+          echo "Event: ${{ github.event_name }}"
+          echo "Ref: ${{ github.ref }}"
+  check-actor:
+    name: Check Actor
+    if: github.actor != 'pre-commit-ci[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Actor ${{ github.actor }} is allowed to run ci workflow check actor"
+  test-integ:
+    name: Test Integ
+    runs-on: ubuntu-latest
+    environment:
+      name: 'eco-splunk-protected'
+    needs:
+      - check-actor
+    if: >-
+      always() && needs.check-actor.result == 'success' && github.event_name == 'pull_request'
+    steps:
+      - run: echo "Test integ"

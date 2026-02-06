@@ -486,11 +486,7 @@ def remove_deployment_server(module: AnsibleModule, splunk_home: str) -> bool:
     if module.check_mode:
         return True
     deployment_conf = os.path.join(
-        splunk_home,
-        "etc",
-        "system",
-        "local",
-        "deploymentclient.conf",
+        splunk_home, "etc", "system", "local", "deploymentclient.conf"
     )
     if os.path.exists(deployment_conf):
         try:

@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - Prevent Integration tests from running when triggered by pre-commit-ci[bot].
