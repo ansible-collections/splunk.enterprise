@@ -23,37 +23,59 @@ on:
 jobs:
   check-actor:
     name: Check Actor
-    if: github.actor != 'pre-commit-ci[bot]'
+    if: >-
+      github.event_name == 'pull_request_target' &&
+      github.actor != 'pre-commit-ci[bot]'
     runs-on: ubuntu-latest
     steps:
       - run: echo "Actor ${{ github.actor }} is allowed to run integration tests"
+
   safe-to-test:
     needs:
       - check-actor
     if: >-
       always() &&
-      needs.check-actor.result == 'success' &&
       github.event_name == 'pull_request_target' &&
+      needs.check-actor.result == 'success' &&
       (github.event.label.name == 'safe to test' ||
       github.event.action != 'labeled')
     uses: ansible-network/github_actions/.github/workflows/safe-to-test.yml@main
 
   integration:
-    name: Integration Tests
+    name: "${{ matrix.ansible_version }} / ${{ matrix.node_id }}"
     runs-on: ["rhel", "${{ matrix.node_id }}"]
     environment:
-      name: ${{ github.event_name == 'schedule' && 'eco-splunk-daily' || 'eco-splunk-protected' }}
+      name: >-
+        ${{
+          github.event_name == 'schedule' && 'eco-splunk-daily' ||
+          github.event_name == 'workflow_dispatch' && 'eco-splunk-daily' ||
+          'eco-splunk-protected'
+        }}
     needs:
       - check-actor
       - safe-to-test
     if: >-
       always() &&
-      needs.check-actor.result == 'success' &&
-      (needs.safe-to-test.result == 'success' || needs.safe-to-test.result == 'skipped')
+      (
+        github.event_name == 'workflow_dispatch' ||
+        github.event_name == 'schedule' ||
+        (needs.check-actor.result == 'success' &&
+         (needs.safe-to-test.result == 'success' || needs.safe-to-test.result == 'skipped'))
+      )
     strategy:
       fail-fast: false
       matrix:
-        node_id: [rhel8, rhel9, rhel10]
+        ansible_version:
+          - stable-2.16
+          - stable-2.17
+          - stable-2.18
+          - stable-2.19
+          - stable-2.20
+          - stable-2.21
+        node_id:
+          - rhel8
+          - rhel9
+          - rhel10
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -61,10 +83,12 @@ jobs:
           path: ansible_collections/splunk/enterprise
           ref: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
 
-      - name: Install ansible-core
+      - name: Install ansible-core (${{ matrix.ansible_version }})
         run: |
+          rm -rf ~/venv-runner
+          python -m venv ~/venv-runner
           source ~/venv-runner/bin/activate
-          pip install ansible-core
+          pip install "git+https://github.com/ansible/ansible.git@${{ matrix.ansible_version }}"
 
       - name: Install collection dependencies
         run: |
