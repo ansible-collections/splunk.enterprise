@@ -1,0 +1,4 @@
+---
+minor_changes:
+  - integration tests - add ansible version matrix testing stable-2.16 through stable-2.21 on RHEL 8, 9, and 10.
+  - collection - extend support to ansible-core 2.16+ (previously 2.17+).
