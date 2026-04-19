@@ -42,8 +42,10 @@ jobs:
     uses: ansible-network/github_actions/.github/workflows/safe-to-test.yml@main
 
   integration:
-    name: "py${{ matrix.python_version }} / ${{ matrix.ansible_version }} / ${{ matrix.node_id }}"
+    name: "${{ matrix.ansible_version }} / ${{ matrix.node_id }}"
     runs-on: ["rhel", "${{ matrix.node_id }}"]
+    env:
+      PYTHON_VERSION: "3.12"
     environment:
       name: >-
         ${{
@@ -65,13 +67,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # https://docs.ansible.com/ansible/latest/reference_appendices/release_and_maintenance.html#ansible-core-support-matrix
-        # 2.16 supports Python 3.10-3.12
-        # 2.17 supports Python 3.10-3.12
-        # 2.18 supports Python 3.11-3.13
-        # 2.19 supports Python 3.11-3.13
-        # 2.20 supports Python 3.12-3.14
-        # 2.21 supports Python 3.12-3.14
         ansible_version:
           - stable-2.16
           - stable-2.17
@@ -83,19 +78,6 @@ jobs:
           - rhel8
           - rhel9
           - rhel10
-        include:
-          - ansible_version: stable-2.16
-            python_version: "3.10"
-          - ansible_version: stable-2.17
-            python_version: "3.10"
-          - ansible_version: stable-2.18
-            python_version: "3.11"
-          - ansible_version: stable-2.19
-            python_version: "3.11"
-          - ansible_version: stable-2.20
-            python_version: "3.12"
-          - ansible_version: stable-2.21
-            python_version: "3.12"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -103,25 +85,32 @@ jobs:
           path: ansible_collections/splunk/enterprise
           ref: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
 
-      # One dnf transaction per matrix job, only for that job's interpreter (not all Pythons every time).
-      - name: Install Python ${{ matrix.python_version }} (dnf)
+      - name: Install Python ${{ env.PYTHON_VERSION }}
         run: |
-          sudo dnf install -y "python${{ matrix.python_version }}" "python${{ matrix.python_version }}-pip"
+          sudo dnf install -y "python${PYTHON_VERSION}" "python${PYTHON_VERSION}-pip"
 
-      - name: Set up Python ${{ matrix.python_version }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python_version }}
+      - name: Create virtualenv
+        run: |
+          "python${PYTHON_VERSION}" -m venv ~/venv-runner
+          source ~/venv-runner/bin/activate
+          pip install --upgrade pip
 
       - name: Install ansible-core (${{ matrix.ansible_version }})
         run: |
-          python${{ matrix.python_version }} -m pip install "git+https://github.com/ansible/ansible.git@${{ matrix.ansible_version }}"
+          source ~/venv-runner/bin/activate
+          pip install "git+https://github.com/ansible/ansible.git@${{ matrix.ansible_version }}"
 
       - name: Install collection dependencies
         run: |
+          source ~/venv-runner/bin/activate
           ansible-galaxy collection install ansible.netcommon ansible.utils -p ./ansible_collections
 
       - name: Run integration tests
         working-directory: ansible_collections/splunk/enterprise
         run: |
-          ansible-test integration -v --color yes
+          source ~/venv-runner/bin/activate
+          ansible-test integration -vvv --color yes
+
+      - name: Clean up virtualenv
+        if: always()
+        run: rm -rf ~/venv-runner
