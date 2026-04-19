@@ -91,6 +91,7 @@ jobs:
 
       - name: Create virtualenv
         run: |
+          sudo rm -rf ~/venv-runner
           "python${PYTHON_VERSION}" -m venv ~/venv-runner
           source ~/venv-runner/bin/activate
           pip install --upgrade pip
@@ -113,4 +114,4 @@ jobs:
 
       - name: Clean up virtualenv
         if: always()
-        run: rm -rf ~/venv-runner
+        run: sudo rm -rf ~/venv-runner
