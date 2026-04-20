@@ -353,7 +353,7 @@
           - uninstall_result.installed == false
         fail_msg: "Uninstall should succeed and report changed"
 
-    - name: "UNINSTALL | Gather info after uninstall"
+    - name: "UNINSTALL | Gather info after uninstall DUMMY"
       splunk.enterprise.win_splunk_universal_forwarder_info:
         username: "{{ splunk_username }}"
         password: "{{ splunk_password }}"
