@@ -87,7 +87,7 @@ jobs:
 
       - name: Install Python ${{ env.PYTHON_VERSION }}
         run: |
-          sudo dnf install -y "python${PYTHON_VERSION}" "python${PYTHON_VERSION}-pip"
+          sudo dnf install -y "python${PYTHON_VERSION}" "python${PYTHON_VERSION}-pip" sqlite-libs
 
       - name: Create virtualenv
         run: |
