@@ -58,6 +58,7 @@ fi
 sudo chown "$(whoami)" "${PWD}/../../"
 
 export PYTHONIOENCODING='utf-8'
+export ANSIBLE_VERSION="${ansible_version}"
 
 if [ -n "${COVERAGE:-}" ]; then
     # on-demand coverage reporting triggered by setting the COVERAGE environment variable to a non-empty value

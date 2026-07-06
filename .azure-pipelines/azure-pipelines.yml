@@ -28,7 +28,7 @@ variables:
   - name: fetchDepth
     value: 0
   - name: defaultContainer
-    value: quay.io/ansible/azure-pipelines-test-container:8.0.0
+    value: quay.io/ansible/azure-pipelines-test-container:7.0.0
 
 pool: Standard
 
@@ -45,7 +45,7 @@ stages:
             fetchDepth: 1
           - task: UsePythonVersion@0
             inputs:
-              versionSpec: "3.10"
+              versionSpec: "3.12"
           - bash: python -m pip install ansible-core
             displayName: Install Ansible
           - bash: mkdir -p collections/ansible_collections && ansible-galaxy collection install -r tests/requirements.yml -p collections
@@ -54,10 +54,100 @@ stages:
             inputs:
               targetPath: collections
               artifactName: CollectionRequirements
+  - stage: Ansible_sanity
+    displayName: Ansible sanity
+    dependsOn:
+      - Dependencies
+    jobs:
+      - template: templates/matrix.yml
+        parameters:
+          nameFormat: "{0}"
+          testFormat: "{0}"
+          testGroupFormat: "{{1}}/{0}"
+          groups:
+            - "2.16"
+            - "2.18"
+            - "2.20"
+            - "2.21"
+          targets:
+            - name: Sanity
+              test: sanity
+  - stage: Ansible_sanity_devel
+    displayName: Ansible sanity (devel)
+    dependsOn:
+      - Dependencies
+    variables:
+      - name: defaultContainer
+        value: quay.io/ansible/azure-pipelines-test-container:8.0.0
+    jobs:
+      - template: templates/matrix.yml
+        parameters:
+          nameFormat: "{0}"
+          testFormat: "devel/{0}"
+          targets:
+            - name: Sanity
+              test: sanity
   - stage: Windows_1
     displayName: Windows 1
     dependsOn:
       - Dependencies
+    jobs:
+      - template: templates/matrix.yml
+        parameters:
+          nameFormat: Server {0}
+          testFormat: windows/{0}/1
+          testGroupFormat: "{{1}}/{0}"
+          groups:
+            - "2.16"
+          targets:
+            - name: 2019 WinRM HTTPS
+              test: 2019/winrm/https
+            - name: 2022 WinRM HTTPS
+              test: 2022/winrm/https
+      - template: templates/matrix.yml
+        parameters:
+          nameFormat: Server {0}
+          testFormat: windows/{0}/1
+          testGroupFormat: "{{1}}/{0}"
+          groups:
+            - "2.18"
+          targets:
+            - name: 2019 WinRM HTTPS
+              test: 2019/winrm/https
+            - name: 2022 WinRM HTTPS
+              test: 2022/winrm/https
+            - name: 2022 PSRP HTTPS
+              test: 2022/psrp/https
+            - name: 2022 SSH Key
+              test: 2022/ssh/key
+      - template: templates/matrix.yml
+        parameters:
+          nameFormat: Server {0}
+          testFormat: windows/{0}/1
+          testGroupFormat: "{{1}}/{0}"
+          groups:
+            - "2.20"
+            - "2.21"
+          targets:
+            - name: 2019 WinRM HTTPS
+              test: 2019/winrm/https
+            - name: 2022 WinRM HTTPS
+              test: 2022/winrm/https
+            - name: 2022 PSRP HTTPS
+              test: 2022/psrp/https
+            - name: 2022 SSH Key
+              test: 2022/ssh/key
+            - name: 2025 PSRP HTTP
+              test: 2025/psrp/http
+            - name: 2025 SSH Key
+              test: 2025/ssh/key
+  - stage: Windows_1_devel
+    displayName: Windows 1 (devel)
+    dependsOn:
+      - Dependencies
+    variables:
+      - name: defaultContainer
+        value: quay.io/ansible/azure-pipelines-test-container:8.0.0
     jobs:
       - template: templates/matrix.yml
         parameters:
