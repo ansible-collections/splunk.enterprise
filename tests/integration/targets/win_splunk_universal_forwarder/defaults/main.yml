@@ -10,8 +10,8 @@ splunk_version_base: "9.4.7"
 splunk_release_id_base: "2a9293b80994"
 
 # Version for upgrade testing
-splunk_version_upgrade: "10.0.2"
-splunk_release_id_upgrade: "e2d18b4767e9"
+splunk_version_upgrade: "10.4.1"
+splunk_release_id_upgrade: "5a009d941268"
 
 # Version for downgrade testing (should fail)
 splunk_version_downgrade: "10.0.0"
