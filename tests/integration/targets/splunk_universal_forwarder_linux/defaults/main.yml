@@ -5,8 +5,8 @@ splunk_version: "9.4.7"
 splunk_release_id: "2a9293b80994"
 
 # Upgrade version for upgrade tests
-splunk_upgrade_version: "10.0.2"
-splunk_upgrade_release_id: "e2d18b4767e9"
+splunk_upgrade_version: "10.4.1"
+splunk_upgrade_release_id: "5a009d941268"
 
 splunk_username: "admin"
 splunk_password: "testpassword123"

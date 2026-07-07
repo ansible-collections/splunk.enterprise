@@ -18,8 +18,14 @@ fi
 stage="${S:-prod}"
 provider="${P:-default}"
 
-# shellcheck disable=SC2086
-ansible-test windows-integration --color -v --retry-on-error "${target}" ${COVERAGE:+"$COVERAGE"} ${CHANGED:+"$CHANGED"} ${UNSTABLE:+"$UNSTABLE"} \
-    --controller "docker:default" \
-    --target "remote:windows/${version},connection=${connection}+${connection_setting},provider=${provider}" \
-    --remote-terminate always --remote-stage "${stage}"
+if [ "${ANSIBLE_VERSION:-}" == "2.16" ]; then
+    ansible-test windows-integration --color -v --retry-on-error "${target}" ${COVERAGE:+"$COVERAGE"} ${CHANGED:+"$CHANGED"} ${UNSTABLE:+"$UNSTABLE"} \
+        --controller "docker:default" \
+        --target "remote:windows/${version},provider=${provider}" \
+        --remote-terminate always --remote-stage "${stage}"
+else
+    ansible-test windows-integration --color -v --retry-on-error "${target}" ${COVERAGE:+"$COVERAGE"} ${CHANGED:+"$CHANGED"} ${UNSTABLE:+"$UNSTABLE"} \
+        --controller "docker:default" \
+        --target "remote:windows/${version},connection=${connection}+${connection_setting},provider=${provider}" \
+        --remote-terminate always --remote-stage "${stage}"
+fi
