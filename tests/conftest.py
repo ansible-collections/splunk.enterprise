@@ -8,7 +8,6 @@ from the plugins directory using absolute imports like:
     from plugins.modules.splunk_universal_forwarder_linux import ...
 """
 
-
 import sys
 from pathlib import Path
 
